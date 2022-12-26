@@ -10,7 +10,7 @@ def current_project():
 
 def user_permissions():
     # TODO: get user permissions from request context
-    return ["app:read", "app:write"]
+    return ["test_cases:read", "test_cases:write"]
 
 
 def check_required_permissions(required_permissions):

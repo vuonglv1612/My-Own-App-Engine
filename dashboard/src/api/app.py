@@ -11,4 +11,4 @@ def read_root():
     return RedirectResponse(url="/docs")
 
 
-app.include_router(app_router, prefix="/app", tags=["app"])
+app.include_router(app_router, prefix="/test_cases", tags=["test_cases"])

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from src.repositories.app import AppRepository, SQLAlchemyAppRepository, MemoryAppRepository
+from src.repositories.app import AppRepository, SQLAlchemyAppRepository
 
 
 class UnitOfWork(ABC):
@@ -27,20 +27,6 @@ class UnitOfWork(ABC):
         pass
 
     @abstractmethod
-    async def commit(self):
-        pass
-
-
-class MemoryUnitOfWork(UnitOfWork):
-    async def _connect(self):
-        self.apps = MemoryAppRepository()
-
-    async def _disconnect(self):
-        pass
-
-    async def rollback(self):
-        pass
-
     async def commit(self):
         pass
 
