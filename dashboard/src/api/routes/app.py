@@ -11,25 +11,29 @@ router = APIRouter()
 
 class CreateAppPayload(BaseModel):
     name: str = fields.Field(..., description="App name, must be unique")
-    plan: str = fields.Field(description="The plan name for the test_cases")
+    plan: str = fields.Field(description="The plan name for the app")
+
+
+class ScaleAppPayload(BaseModel):
+    units: int = fields.Field(..., description="Number of units to scale to", ge=1)
 
 
 class CreateAppResponse(BaseModel):
     id: str = fields.Field(..., description="App id")
     name: str = fields.Field(..., description="App name")
     project_id: str = fields.Field(..., description="Project id")
-    plan: str = fields.Field(..., description="The plan name for the test_cases")
+    plan: str = fields.Field(..., description="The plan name for the app")
     status: str = fields.Field(..., description="App status")
     created_at: str = fields.Field(..., description="App creation date")
     deleted_at: str = fields.Field(..., description="App deletion date")
 
 
-@router.get("/{app_name}", dependencies=[Depends(check_required_permissions(["test_cases:read"]))])
+@router.get("/{app_name}", dependencies=[Depends(check_required_permissions(["apps:read"]))])
 async def get_app(app_name: str):
     return {"app_name": app_name}
 
 
-@router.post("/", dependencies=[Depends(check_required_permissions(["test_cases:write"]))])
+@router.post("", dependencies=[Depends(check_required_permissions(["apps:write"]))])
 async def create_app(
     body: CreateAppPayload,
     uow=Depends(unit_of_work),
@@ -37,7 +41,24 @@ async def create_app(
     project=Depends(current_project),
 ):
     try:
-        app = await app_handlers.new_app(uow, provisioner, project_id=project.id, app_name=body.name, plan=body.plan)
+        app = await app_handlers.new_app(
+            uow, provisioner, project_id=project.id, app_name=body.name, plan_name=body.plan
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail={"error": str(e)})
+    return app
+
+
+@router.post("/{app_name}/scale", dependencies=[Depends(check_required_permissions(["apps:write"]))])
+async def scale_app(
+    app_name: str,
+    body: ScaleAppPayload,
+    uow=Depends(unit_of_work),
+    provisioner=Depends(get_provisioner),
+    project=Depends(current_project),
+):
+    try:
+        app = await app_handlers.scale_app(uow, provisioner, project_id=project.id, app_name=app_name, units=body.units)
     except ValueError as e:
         raise HTTPException(status_code=400, detail={"error": str(e)})
     return app

@@ -31,6 +31,17 @@ class Project:
     def create(cls, project_id: str, project_name: str, created_at: datetime):
         return cls(id=project_id, name=project_name, created_at=created_at)
 
+    def add_billing_resource(self, resource_id: str, resource_type: str, plan: str, created_at: datetime):
+        billing_resource = BillingResource(
+            resource_id=resource_id,
+            resource_type=resource_type,
+            plan=plan,
+            created_at=created_at,
+        )
+        self.billing_resources.append(billing_resource)
+        self.version_number += 1
+        return billing_resource
+
     def top_up(self, amount: int, note: str):
         self.balance += amount
         balance_adjustment_id = self._generate_balance_adjustment_id()

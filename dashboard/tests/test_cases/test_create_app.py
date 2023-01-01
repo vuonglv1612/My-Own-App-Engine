@@ -9,7 +9,7 @@ from src.utils import model_to_dict
 @pytest.mark.asyncio
 async def test_create_app(uow_factory, provisioner_factory):
     project_id = "project_id"
-    app_name = "test-test_cases"
+    app_name = "test-app"
     plan = "c0.1m256"
     created_at = datetime.now(tz=timezone.utc)
     uow = uow_factory.for_test_create_app()
