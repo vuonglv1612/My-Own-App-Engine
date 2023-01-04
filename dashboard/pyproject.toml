@@ -15,6 +15,7 @@ sqlalchemy = {extras = ["asyncio"], version = "^1.4.45"}
 environs = "^9.5.0"
 psycopg2 = "^2.9.5"
 pytz = "^2022.7"
+asyncpg = "^0.27.0"
 
 
 [tool.poetry.group.dev.dependencies]

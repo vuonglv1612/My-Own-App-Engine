@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
+from src.dependencies import start_mappers
 from .routes.app import router as app_router
 from .routes.deployments import router as deployments_router
 
+start_mappers()
 app = FastAPI(title="Dashboard API", version="0.1.0", description="Dashboard API")
 
 

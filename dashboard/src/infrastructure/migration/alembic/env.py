@@ -4,8 +4,8 @@ from alembic import context
 from sqlalchemy import create_engine
 from sqlalchemy import pool
 
-from config import postgresql_uri
-from src.infrastructure.postgres.models import metadata
+from config import settings
+from src.infrastructure.postgres.models.base import metadata
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -28,7 +28,7 @@ target_metadata = metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-sqlalchemy_url = postgresql_uri
+sqlalchemy_url = settings.postgresql_uri
 
 
 def run_migrations_offline() -> None:
@@ -63,7 +63,7 @@ def run_migrations_online() -> None:
 
     """
     connectable = create_engine(
-        postgresql_uri,
+        sqlalchemy_url,
         poolclass=pool.NullPool,
     )
 

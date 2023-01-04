@@ -5,7 +5,7 @@ class MemoryAppRepository(AppRepository):
     def __init__(self):
         self._data = {}
 
-    async def get(self, entity_id: str):
+    async def get_by_id(self, entity_id: str):
         return self._data.get(entity_id)
 
     async def add(self, entity):

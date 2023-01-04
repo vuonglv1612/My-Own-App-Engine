@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
 from src.repositories.app import AppRepository, SQLAlchemyAppRepository
-from src.repositories.billing_resource import BillingResourceRepository, SQLAlchemyBillingResourceRepository
 from src.repositories.plan import PlanRepository, SQLAlchemyPlanRepository
 from src.repositories.project import ProjectRepository, SQLAlchemyProjectRepository
 
@@ -10,7 +9,6 @@ class UnitOfWork(ABC):
     apps: AppRepository
     plans: PlanRepository
     projects: ProjectRepository
-    billing_resources: BillingResourceRepository
 
     async def __aenter__(self):
         await self._connect()
@@ -46,7 +44,6 @@ class SQLAlchemyUnitOfWork(UnitOfWork):
         self.apps = SQLAlchemyAppRepository(self._session)
         self.plans = SQLAlchemyPlanRepository(self._session)
         self.projects = SQLAlchemyProjectRepository(self._session)
-        self.billing_resources = SQLAlchemyBillingResourceRepository(self._session)
 
     async def _disconnect(self):
         await self._session.close()

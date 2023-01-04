@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 import pytest
 
 from src.handlers import app as app_handlers
-from src.utils import model_to_dict
+from src.utils.datetime import model_to_dict
 
 
 @pytest.mark.asyncio
@@ -17,7 +17,7 @@ async def test_create_app(uow_factory, provisioner_factory):
 
     app = await app_handlers.new_app(uow, provisioner, project_id, plan, app_name, created_at)
 
-    persisted_app = await uow.apps.get(app_name)
+    persisted_app = await uow.apps.get_by_id(app_name)
     assert uow.committed
     assert persisted_app is not None
     assert model_to_dict(persisted_app) == app

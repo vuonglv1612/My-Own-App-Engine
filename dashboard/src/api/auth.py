@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status, Depends
 
-from src.core.models import Project
+from src.core.entities import Project
 
 
 def current_project():
