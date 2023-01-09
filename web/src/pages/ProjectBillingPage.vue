@@ -1,6 +1,7 @@
 <template>
+  <q-layout>
+
     <q-drawer v-model="openDrawer" side="left" elevated>
-      <!-- drawer content -->
       <q-list
         bordered
         link
@@ -12,7 +13,9 @@
           clickable
           v-ripple
           :to="item.to"
+          :active="link === item.name"
           active-class="my-menu-link"
+          @click="link = item.name"
         >
           <q-item-section avatar>
             <q-icon :name="item.icon"/>
@@ -23,40 +26,54 @@
     </q-drawer>
 
     <q-page-container>
-      <router-view />
+      <router-view/>
     </q-page-container>
+  </q-layout>
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
 export default {
   // name: 'PageName',
   setup () {
+    const route = useRoute()
+    const link = ref(route.name)
+    watch(() => route.name, (newVal) => {
+      link.value = newVal
+    })
     const items = [
       {
-        name: 'project.apps',
-        label: 'Danh sách ứng dụng',
+        name: 'project.billing.overview',
+        label: 'Tổng Quan',
         icon: 'o_home',
-        to: { name: 'project.apps' }
+        to: { name: 'project.billing.overview' }
       },
       {
-        name: 'project.members',
-        label: 'Thành viên',
-        icon: 'o_people',
-        to: { name: 'project.members' }
+        name: 'project.billing.deposit',
+        label: 'Nạp tiền',
+        icon: 'o_atm',
+        to: { name: 'project.billing.deposit' }
       },
       {
-        name: 'project.billing',
-        label: 'Thanh toán',
-        icon: 'o_credit_card',
-        to: { name: 'project.billing' }
+        name: 'project.billing.invoices',
+        label: 'Hóa đơn',
+        icon: 'o_receipt_long',
+        to: { name: 'project.billing.invoices' }
+      },
+      {
+        name: 'project.billing.transactions',
+        label: 'Giao dịch',
+        icon: 'o_payments',
+        to: { name: 'project.billing.transactions' }
       }
     ]
     const openDrawer = ref(true)
     return {
       openDrawer,
-      items
+      items,
+      link
     }
   }
 }

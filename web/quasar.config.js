@@ -45,7 +45,7 @@ module.exports = configure(function (/* ctx */) {
       // 'themify',
       // 'line-awesome',
       'fontawesome-v6',
-      'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
+      // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
       'material-icons-outlined',
       // 'roboto-font', // optional, you are not bound to it
       'material-icons' // optional, you are not bound to it

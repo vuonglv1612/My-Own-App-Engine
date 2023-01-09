@@ -9,7 +9,7 @@
         </q-toolbar-title>
       </q-toolbar>
     </q-header>
-    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" overlay bordered>
+    <q-drawer v-model="leftDrawerOpen" side="left" overlay bordered>
       <q-list padding class="rounded-borders text-black bg-white fit">
         <q-item
           v-ripple
@@ -21,17 +21,6 @@
             label="Dự án"
             outlined
             class="fit"
-          />
-        </q-item>
-        <q-item
-          v-ripple
-        >
-          <q-btn
-            class="fit"
-            color="primary"
-            unelevated
-            label="Thêm mới ứng dụng"
-            no-caps
           />
         </q-item>
         <q-item
@@ -68,8 +57,8 @@
           clickable
           v-ripple
           :to="{ name: 'project.billing' }"
-          :active="link === 'project.billing'"
-          @click="link = 'project.billing'"
+          :active="link.startsWith('project.billing')"
+          @click="link = 'project.billing.overview'"
           active-class="my-menu-link"
         >
           <q-item-section avatar>
@@ -145,6 +134,9 @@ export default {
       value: rawProject.project_name
     }
     link.value = route.name
+    if (!link.value.startsWith('project.billing')) {
+      leftDrawerOpen.value = true
+    }
 
     const onChangeSelectedProject = () => {
       projectStore.setActiveProject(project.value.value)
@@ -158,6 +150,7 @@ export default {
       leftDrawerOpen,
       toggleLeftDrawer () {
         leftDrawerOpen.value = !leftDrawerOpen.value
+        link.value = route.name
       },
       onChangeSelectedProject
     }
