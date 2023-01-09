@@ -48,7 +48,7 @@
             icon-last="skip_next"
             icon-prev="fast_rewind"
             icon-next="fast_forward"
-            @update:model-value="loadNewPage"
+            @update:model-value="reloadApps"
           />
         </div>
       </div>
@@ -57,7 +57,7 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useAppStore } from 'stores/app-store'
 import AppListItem from 'components/AppListItem.vue'
 import { useProjectStore } from 'stores/project-store'
@@ -79,33 +79,31 @@ export default {
     const appStore = useAppStore()
 
     const { activeProject } = storeToRefs(projectStore)
-
-    console.log('projectStore.currentProject', activeProject.project_name)
-    appStore.fetchApps(activeProject.id, currentPage.value, searchText.value)
+    appStore.fetchApps(activeProject.value.id, currentPage.value, searchText.value)
     loading.value = false
     const numberOfPages = ref(appStore.numberOfPages)
     const apps = ref(appStore.listApps)
 
-    const loadNewPage = () => {
+    const reloadApps = () => {
       loading.value = true
-      appStore.fetchApps(activeProject.id, currentPage.value, searchText.value)
-      loading.value = false
+      appStore.fetchApps(activeProject.value.id, currentPage.value, searchText.value)
+      setTimeout(() => {
+        loading.value = false
+      }, 1000)
       numberOfPages.value = appStore.numberOfPages
       apps.value = appStore.listApps
     }
+
+    watch(activeProject, () => {
+      return reloadApps()
+    })
 
     const searchApp = () => {
       searchTextRef.value.validate()
       if (searchTextRef.value.hasError) {
         return
       }
-      loading.value = true
-      appStore.fetchApps(activeProject.id, currentPage.value, searchText.value)
-      setTimeout(() => {
-        loading.value = false
-      }, 1000)
-      numberOfPages.value = appStore.numberOfPages
-      apps.value = appStore.listApps
+      return reloadApps()
     }
 
     const onReset = () => {
@@ -121,7 +119,7 @@ export default {
       loading,
       searchTextRef,
       searchTextRules,
-      loadNewPage,
+      reloadApps,
       searchApp,
       onReset
     }

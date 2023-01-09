@@ -6,7 +6,7 @@
       </div>
 
       <div class="text-h2" style="opacity:.4">
-        Trang Ban Nhap Khong Ton Tai
+        Đường dẫn không tồn tại
       </div>
 
       <q-btn

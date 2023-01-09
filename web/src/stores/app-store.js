@@ -104,8 +104,8 @@ export const useAppStore = defineStore('appStore', {
           updated_at: '2021-01-01 00:00:00'
         }
       ]
-      this.totalApps = apps.length
       this.apps = apps.slice((page - 1) * this.pageSize, page * this.pageSize)
+      this.totalApps = apps.length
     }
   }
 })

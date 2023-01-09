@@ -9,7 +9,7 @@
         </q-toolbar-title>
       </q-toolbar>
     </q-header>
-    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered>
+    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" overlay bordered>
       <q-list padding class="rounded-borders text-black bg-white fit">
         <q-item
           v-ripple
@@ -73,7 +73,7 @@
           active-class="my-menu-link"
         >
           <q-item-section avatar>
-            <q-icon name="o_paid"/>
+            <q-icon name="o_credit_card"/>
           </q-item-section>
 
           <q-item-section>Chi phí sử dụng</q-item-section>
