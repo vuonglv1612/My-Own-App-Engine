@@ -1,7 +1,7 @@
 <template>
   <q-page padding>
     <div class="row">
-      <div class="col-xs-12 col-md-6">
+      <div class="col-xs-12 col-md-9">
         <div class="row">
           <q-card class="my-card fit">
             <q-card-section>
@@ -59,7 +59,7 @@
                 flat
                 align="left"
                 class="fit text-left text-weight-light"
-                label="Chi tiết giao dịch"
+                label="Toàn bộ giao dịch"
                 icon="arrow_forward"
                 :to="{ name: 'project.billing.transactions' }"
               />
@@ -67,9 +67,8 @@
           </q-card>
         </div>
       </div>
-      <div class="col-xs-12 col-md-3 q-px-md">
+      <div class="col-xs-12 col-md-3 q-pl-md">
         <div class="row">
-
           <q-card class="my-card fit">
             <q-card-section>
               <div class="text-h6">Tài Khoản</div>
@@ -94,6 +93,40 @@
                 label="Nạp tiền"
                 icon="arrow_forward"
                 :to="{ name: 'project.billing.deposit' }"
+              />
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <div class="row q-py-md">
+          <q-card class="my-card fit">
+            <q-card-section>
+              <div class="text-h6">Hóa đơn gần đây</div>
+            </q-card-section>
+            <q-separator/>
+            <q-card-section>
+              <span v-if="!invoices">Bạn chưa có hóa đơn</span>
+              <q-list v-else class="q-pa-none">
+                <q-item v-for="invoice in invoices" :key="invoice.id" clickable :to="invoice.url">
+                  <q-item-section>
+                    <q-item-label>{{ invoice.name }}</q-item-label>
+                    <q-item-label caption>{{ invoice.date }}</q-item-label>
+                  </q-item-section>
+                  <q-item-section side>
+                    <q-item-label>{{ invoice.amount.toLocaleString() }} VND</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-card-section>
+            <q-separator/>
+            <q-card-section class="q-pa-none">
+              <q-btn
+                flat
+                align="left"
+                class="fit text-left text-weight-light"
+                label="Toàn bộ hóa đơn"
+                icon="arrow_forward"
+                :to="{ name: 'project.billing.invoices' }"
               />
             </q-card-section>
           </q-card>
@@ -263,11 +296,54 @@ export default {
       unpaid_amount: 100000,
       status: 'Bình thường'
     })
+    const invoices = ref([
+      {
+        id: 1,
+        amount: 100000,
+        name: 'Hóa đơn từ 1/1/2021 đến 31/1/2021',
+        status: 'Đã thanh toán',
+        created_at: '2021-02-01',
+        url: '#'
+      },
+      {
+        id: 2,
+        amount: 100000,
+        name: 'Hóa đơn từ 1/2/2021 đến 28/2/2021',
+        status: 'Đã thanh toan',
+        created_at: '2021-03-01',
+        url: '#'
+      },
+      {
+        id: 3,
+        amount: 100300,
+        name: 'Hóa đơn từ 1/3/2021 đến 31/3/2021',
+        status: 'Chưa thanh toán',
+        created_at: '2021-04-01',
+        url: '#'
+      },
+      {
+        id: 4,
+        amount: 600000,
+        name: 'Hóa đơn từ 1/4/2021 đến 30/4/2021',
+        status: 'Chưa thanh toán',
+        created_at: '2021-05-01',
+        url: '#'
+      },
+      {
+        id: 5,
+        amount: 90000,
+        name: 'Hóa đơn từ 1/5/2021 đến 31/5/2021',
+        status: 'Chưa thanh toán',
+        created_at: '2021-06-01',
+        url: '#'
+      }
+    ])
     return {
       tooltipContent,
       account,
       rows,
-      columns
+      columns,
+      invoices: invoices.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     }
   }
 }

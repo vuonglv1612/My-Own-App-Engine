@@ -11,7 +11,7 @@ const routes = [
       {
         name: 'project.billing',
         path: 'billing',
-        component: () => import('pages/ProjectBillingPage.vue'),
+        component: () => import('layouts/ProjectBillingPageLayout.vue'),
         redirect: { name: 'project.billing.overview' },
         children: [
           {
