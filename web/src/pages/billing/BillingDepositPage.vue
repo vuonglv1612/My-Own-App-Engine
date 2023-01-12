@@ -3,113 +3,61 @@
     <div class="row">
       <div class="col-xs-12">
         <div class="row">
-          <q-card class="my-card fit">
-            <q-card-section>
-              <div class="text-h6">Chi phí sử dụng</div>
-            </q-card-section>
-            <q-separator/>
-            <q-card-section>
-              <div class="row">
-                <div class="col-xs-12 col-md-6">
-                  <div class="text-weight-bolder">Chi phí đã sử dụng</div>
-                  <div class="text-caption text-italic">(Từ 1/1 - 9/1/2023)</div>
-                  <div class="text-caption text-weight-medium">0.00 VND</div>
-                </div>
-                <div class="col-xs-12 col-md-6">
-                  <div class="text-weight-bolder">Chi phí ước tính tới cuối tháng</div>
-                  <div class="text-caption text-weight-medium">0.00 VND</div>
-                </div>
-              </div>
-            </q-card-section>
-            <q-separator/>
-            <q-card-section class="q-pa-none">
-              <q-btn
-                flat
-                align="left"
-                class="fit text-left text-weight-light"
-                label="Chi tiết chi phí"
-                icon="arrow_forward"
-                :to="{ name: 'project.billing.invoices' }"
-              />
-            </q-card-section>
-          </q-card>
-        </div>
-        <div class="row q-pt-md">
-          <q-card class="my-card fit">
+          <q-card id="deposit-box" class="my-card fit">
             <q-card-section>
               <div class="text-h6">Nạp tiền</div>
             </q-card-section>
             <q-separator/>
-            <q-card-section class="q-pa-none">
-              <div class="row q-ma-xs">
-                <div v-for="option in depositOptions" :key="option.index" class="col-md-3 q-pa-xs">
-                  <q-btn
-                    flat
-                    align="left"
-                    class="fit bg-grey-2"
-                    unelevated
-                    color="primary"
-                    :label="option.number.toLocaleString() + ' VND'"
-                  />
-                </div>
-                <div class="col-md-3 q-pa-xs">
-                  <q-input bottom-slots v-model="text" label="Label" counter maxlength="12" :dense="dense">
-                    <template v-slot:before>
-                      <q-avatar>
-                        <img src="https://cdn.quasar.dev/img/avatar5.jpg">
-                      </q-avatar>
-                    </template>
-
-                    <template v-slot:append>
-                      <q-icon v-if="text !== ''" name="close" @click="text = ''" class="cursor-pointer"/>
-                      <q-icon name="schedule"/>
-                    </template>
-
-                    <template v-slot:hint>
-                      Field hint
-                    </template>
-
-                    <template v-slot:after>
-                      <q-btn round dense flat icon="send"/>
-                    </template>
-                  </q-input>
-                </div>
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-        <div class="row q-pt-md">
-          <q-card class="my-card fit">
             <q-card-section>
-              <div class="text-h6">Lịch sử nạp tiền</div>
-            </q-card-section>
-            <q-separator/>
-            <q-card-section class="q-pa-xs">
+              <div class="text-subtitle1 q-pl-sm">Chọn nhanh số tiền cần nạp</div>
               <div class="row">
-                <div class="col-xs-12">
-                  <q-table
-                    :rows="rows"
-                    :columns="columns"
-                    row-key="name"
-                    :separator="separator"
-                    hide-pagination
-                  />
+                <div v-for="option in predefinedDepositOptions" :key="option.amount"
+                     class="col col-xs-12 col-md-4 q-pa-sm">
+                  <q-btn flat class="fit deposit-option-box bg-grey-3 text-center justify-center q-pa-lg q-hoverable"
+                         @click="requestTopUp(option.amount)">
+                    {{ option.amount.toLocaleString() + ' VNĐ' }}
+                  </q-btn>
                 </div>
               </div>
             </q-card-section>
             <q-separator/>
-            <q-card-section class="q-pa-none">
-              <q-btn
-                flat
-                align="left"
-                class="fit text-left text-weight-light"
-                label="Toàn bộ giao dịch"
-                icon="arrow_forward"
-                :to="{ name: 'project.billing.transactions' }"
-              />
+            <q-card-section>
+              <div class="text-subtitle1 q-pl-sm">Chọn số tiền muốn nạp</div>
+              <div class="row">
+                <q-input outlined type="number" suffix="VNĐ" v-model="customDeposit" class="q-pl-sm">
+                  <template v-slot:append>
+                    <div class="row">
+                      <q-btn class="bg-primary text-white" flat label="Nạp tiền" @click="requestTopUp(Number(customDeposit))" />
+                    </div>
+                  </template>
+                </q-input>
+              </div>
             </q-card-section>
           </q-card>
         </div>
+      </div>
+    </div>
+    <div class="row q-mt-md">
+      <div class="col-xs-12">
+        <q-card class="my-card fit">
+          <q-card-section>
+            <div class="text-h6">Lịch sử nạp tiền</div>
+          </q-card-section>
+          <q-separator/>
+          <q-card-section class="q-pa-xs">
+            <div class="row">
+              <div class="col-xs-12">
+                <q-table
+                  flat
+                  :rows="rows"
+                  :columns="columns"
+                  row-key="payment_id"
+                />
+              </div>
+            </div>
+          </q-card-section>
+          <q-separator/>
+        </q-card>
       </div>
     </div>
   </q-page>
@@ -130,245 +78,115 @@
 
 <script>
 import { ref } from 'vue'
+import { date, useQuasar } from 'quasar'
+import TopUpComponent from 'components/TopUpComponent.vue'
 
 export default {
-  name: 'BillingDepositPage',
+  // name: 'PageName',
   setup () {
+    const $q = useQuasar()
+    const formatDate = (strDate) => {
+      const timeStamp = Date(strDate)
+      return date.formatDate(timeStamp, 'HH:mm:ss DD/MM/YYYY Z')
+    }
     const columns = [
       {
-        name: 'name',
+        name: 'created_at',
         required: true,
-        label: 'Dessert (100g serving)',
+        label: 'Ngày Tạo',
         align: 'left',
-        field: row => row.name,
-        format: val => `${val}`,
+        sortable: true,
+        field: row => formatDate(row.created_at)
+      },
+      { name: 'payment_id', align: 'left', label: 'Mã biên lai', field: 'payment_id' },
+      { name: 'payment_method', align: 'left', label: 'Phương thức nạp tiền', field: 'payment_method' },
+      {
+        name: 'payment_amount',
+        align: 'left',
+        label: 'Số tiền',
+        field: (row) => {
+          return Number(row.payment_amount).toLocaleString() + ' VND'
+        },
         sortable: true
       },
-      { name: 'calories', align: 'center', label: 'Calories', field: 'calories', sortable: true },
-      { name: 'fat', label: 'Fat (g)', field: 'fat', sortable: true },
-      { name: 'carbs', label: 'Carbs (g)', field: 'carbs' },
-      { name: 'protein', label: 'Protein (g)', field: 'protein' },
-      { name: 'sodium', label: 'Sodium (mg)', field: 'sodium' },
-      {
-        name: 'calcium',
-        label: 'Calcium (%)',
-        field: 'calcium',
-        sortable: true,
-        sort: (a, b) => parseInt(a, 10) - parseInt(b, 10)
-      },
-      {
-        name: 'iron',
-        label: 'Iron (%)',
-        field: 'iron',
-        sortable: true,
-        sort: (a, b) => parseInt(a, 10) - parseInt(b, 10)
-      }
+      { name: 'payment_status', align: 'left', label: 'Trạng thái', field: 'payment_status' }
     ]
 
     const rows = [
       {
-        name: 'Frozen Yogurt',
-        calories: 159,
-        fat: 6.0,
-        carbs: 24,
-        protein: 4.0,
-        sodium: 87,
-        calcium: '14%',
-        iron: '1%'
+        created_at: '2022-12-12T12:00:00Z',
+        payment_id: 'PM-01',
+        payment_method: 'Chuyển Khoản',
+        payment_amount: 10000,
+        payment_status: 'Thành công'
       },
       {
-        name: 'Ice cream sandwich',
-        calories: 237,
-        fat: 9.0,
-        carbs: 37,
-        protein: 4.3,
-        sodium: 129,
-        calcium: '8%',
-        iron: '1%'
+        created_at: '2022-12-12T12:00:00Z',
+        payment_id: 'PM-02',
+        payment_method: 'Chuyển Khoản',
+        payment_amount: 20000,
+        payment_status: 'Thành công'
       },
       {
-        name: 'Eclair',
-        calories: 262,
-        fat: 16.0,
-        carbs: 23,
-        protein: 6.0,
-        sodium: 337,
-        calcium: '6%',
-        iron: '7%'
+        created_at: '2022-12-12T12:00:00Z',
+        payment_id: 'PM-03',
+        payment_method: 'MoMo',
+        payment_amount: 25000,
+        payment_status: 'Thất bại'
       },
       {
-        name: 'Cupcake',
-        calories: 305,
-        fat: 3.7,
-        carbs: 67,
-        protein: 4.3,
-        sodium: 413,
-        calcium: '3%',
-        iron: '8%'
+        created_at: '2022-12-10T12:00:00Z',
+        payment_id: 'PM-04',
+        payment_method: 'MoMo',
+        payment_amount: 25000,
+        payment_status: 'Thất bại'
       },
       {
-        name: 'Gingerbread',
-        calories: 356,
-        fat: 16.0,
-        carbs: 49,
-        protein: 3.9,
-        sodium: 327,
-        calcium: '7%',
-        iron: '16%'
-      },
-      {
-        name: 'Jelly bean',
-        calories: 375,
-        fat: 0.0,
-        carbs: 94,
-        protein: 0.0,
-        sodium: 50,
-        calcium: '0%',
-        iron: '0%'
-      },
-      {
-        name: 'Lollipop',
-        calories: 392,
-        fat: 0.2,
-        carbs: 98,
-        protein: 0,
-        sodium: 38,
-        calcium: '0%',
-        iron: '2%'
-      },
-      {
-        name: 'Honeycomb',
-        calories: 408,
-        fat: 3.2,
-        carbs: 87,
-        protein: 6.5,
-        sodium: 562,
-        calcium: '0%',
-        iron: '45%'
-      },
-      {
-        name: 'Donut',
-        calories: 452,
-        fat: 25.0,
-        carbs: 51,
-        protein: 4.9,
-        sodium: 326,
-        calcium: '2%',
-        iron: '22%'
-      },
-      {
-        name: 'KitKat',
-        calories: 518,
-        fat: 26.0,
-        carbs: 65,
-        protein: 7,
-        sodium: 54,
-        calcium: '12%',
-        iron: '6%'
+        created_at: '2022-12-11T12:00:00Z',
+        payment_id: 'PM-05',
+        payment_method: 'MoMo',
+        payment_amount: 25000,
+        payment_status: 'Thành công'
       }
     ]
-    const tooltipContent = 'Chi phí chưa thanh toán là chi phí bạn đã sử dụng, ' +
-      'nhưng chi phí này chưa chạm ngưỡng thanh toán. ' +
-      'Mặc định, nếu cho tới cuối tháng chi phí vẫn chưa chạm ngưỡng thì sẽ tự động được trừ tiền '
-    const account = ref({
-      balance: 100000,
-      unpaid_amount: 100000,
-      status: 'Bình thường'
-    })
-    const invoices = ref([
+    const predefinedDepositOptions = [
       {
-        id: 1,
-        amount: 100000,
-        name: 'Hóa đơn từ 1/1/2021 đến 31/1/2021',
-        status: 'Đã thanh toán',
-        created_at: '2021-02-01',
-        url: '#'
+        amount: 50000
       },
       {
-        id: 2,
-        amount: 100000,
-        name: 'Hóa đơn từ 1/2/2021 đến 28/2/2021',
-        status: 'Đã thanh toan',
-        created_at: '2021-03-01',
-        url: '#'
+        amount: 100000
       },
       {
-        id: 3,
-        amount: 100300,
-        name: 'Hóa đơn từ 1/3/2021 đến 31/3/2021',
-        status: 'Chưa thanh toán',
-        created_at: '2021-04-01',
-        url: '#'
+        amount: 200000
       },
       {
-        id: 4,
-        amount: 600000,
-        name: 'Hóa đơn từ 1/4/2021 đến 30/4/2021',
-        status: 'Chưa thanh toán',
-        created_at: '2021-05-01',
-        url: '#'
+        amount: 500000
       },
       {
-        id: 5,
-        amount: 90000,
-        name: 'Hóa đơn từ 1/5/2021 đến 31/5/2021',
-        status: 'Chưa thanh toán',
-        created_at: '2021-06-01',
-        url: '#'
+        amount: 1000000
+      },
+      {
+        amount: 2000000
       }
-    ])
-    const depositOptions = ref([
-      {
-        index: 1,
-        number: 100000,
-        active: true
-      },
-      {
-        index: 2,
-        number: 200000,
-        active: false
-      },
-      {
-        index: 3,
-        number: 500000,
-        active: false
-      },
-      {
-        index: 4,
-        number: 1000000,
-        active: false
-      },
-      {
-        index: 5,
-        number: 2000000,
-        active: false
-      },
-      {
-        index: 6,
-        number: 5000000,
-        active: false
-      },
-      {
-        index: 7,
-        number: 10000000,
-        active: false
-      }
-    ])
-    const customDeposit = ref(0)
-    const customDepositInput = ref(null)
-    const resetCustomDeposit = () => {
-      customDeposit.value = null
-      customDepositInput.value.resetValidation()
+    ]
+    const depositAmount = ref(null)
+    const requestTopUp = (depositAmount) => {
+      $q.dialog({
+        component: TopUpComponent,
+        componentProps: {
+          depositAmount
+        },
+        persistent: true
+      })
     }
+    const customDeposit = ref(0)
     return {
-      tooltipContent,
-      account,
       rows,
       columns,
-      invoices: invoices.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
-      depositOptions,
       customDeposit,
-      resetCustomDeposit
+      predefinedDepositOptions,
+      depositAmount,
+      requestTopUp
     }
   }
 }

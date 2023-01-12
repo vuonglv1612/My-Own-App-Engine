@@ -7,7 +7,7 @@
         </div>
         <div class="row">
           <div class="col-md-6">
-            <q-input outlined bottom-slots v-model="searchText" ref="searchTextRef" :rules="searchTextRules"
+            <q-input outlined bottom-slots :hide-hint="hideHint" v-model="searchText" ref="searchTextRef" :rules="searchTextRules"
                      label="Tìm kiếm">
               <template v-slot:after>
                 <q-btn round dense flat icon="search" type="submit" @click="searchApp"/>
@@ -106,9 +106,11 @@ export default {
       return reloadApps()
     }
 
+    const hideHint = ref(false)
     const onReset = () => {
       searchTextRef.value.resetValidation()
       searchText.value = null
+      hideHint.value = true
     }
 
     return {
@@ -121,7 +123,8 @@ export default {
       searchTextRules,
       reloadApps,
       searchApp,
-      onReset
+      onReset,
+      hideHint
     }
   }
 }
