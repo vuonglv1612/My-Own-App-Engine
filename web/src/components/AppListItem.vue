@@ -1,5 +1,5 @@
 <template>
-  <q-item clickable>
+  <q-item clickable :to="{ name: 'project.apps.overview', params: { appId: app.id } }">
     <q-item-section avatar top>
       <q-icon :name="statusIcon" :color="statusColor" size="24px">
         <q-tooltip>

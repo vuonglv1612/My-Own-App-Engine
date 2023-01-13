@@ -47,7 +47,7 @@ export default {
   components: { AjaxTableComponent },
   setup () {
     const formatDate = (strDate) => {
-      const timeStamp = Date(strDate)
+      const timeStamp = Date.parse(strDate)
       return date.formatDate(timeStamp, 'HH:mm:ss DD/MM/YYYY Z')
     }
     const columns = [

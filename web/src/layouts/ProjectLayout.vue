@@ -27,12 +27,12 @@
           clickable
           v-ripple
           :to="{ name: 'project.apps' }"
-          :active="link === 'project.apps'"
+          :active="link.startsWith('project.apps')"
           @click="link = 'project.apps'"
           active-class="my-menu-link"
         >
           <q-item-section avatar>
-            <q-icon name="o_home"/>
+            <q-icon name="o_apps"/>
           </q-item-section>
 
           <q-item-section>Danh sách ứng dụng</q-item-section>
@@ -42,7 +42,7 @@
           clickable
           v-ripple
           :to="{ name: 'project.members' }"
-          :active="link === 'project.members'"
+          :active="link.startsWith('project.members')"
           @click="link = 'project.members'"
           active-class="my-menu-link"
         >
@@ -72,7 +72,7 @@
           clickable
           v-ripple
           :to="{ name: 'project.settings' }"
-          :active="link === 'project.settings'"
+          :active="link.startsWith('project.settings')"
           @click="link = 'project.settings'"
           active-class="my-menu-link"
         >
@@ -134,7 +134,10 @@ export default {
       value: rawProject.project_name
     }
     link.value = route.name
-    if (!link.value.startsWith('project.billing')) {
+    if (!link.value.startsWith('project.billing') || !link.value.startsWith('project.apps')) {
+      leftDrawerOpen.value = true
+    }
+    if (link.value.startsWith('project.new_app')) {
       leftDrawerOpen.value = true
     }
 

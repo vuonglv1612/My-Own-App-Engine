@@ -16,14 +16,16 @@
             </q-input>
           </div>
         </div>
-        <q-separator spaced/>
-        <div v-if="loading" class="column justify-center items-center">
-          <q-spinner-ios
+        <div class="row">
+          <q-btn
+            class="q-mt-md"
             color="primary"
-            size="4em"
+            label="Tạo ứng dụng"
+            icon="touch_app"
+            :to="{ name: 'project.new_app' }"
           />
         </div>
-        <div v-else class="row">
+        <div class="row">
           <q-list
             bordered
             separator
@@ -35,6 +37,14 @@
               :key="app.id"
               :app="app"
             />
+            <q-inner-loading :showing="loading">
+              <div class="row">
+                <q-spinner-ios
+                  color="primary"
+                  size="4em"
+                />
+              </div>
+            </q-inner-loading>
           </q-list>
         </div>
         <div class="row">
@@ -88,10 +98,10 @@ export default {
       loading.value = true
       appStore.fetchApps(activeProject.value.id, currentPage.value, searchText.value)
       setTimeout(() => {
+        numberOfPages.value = appStore.numberOfPages
+        apps.value = appStore.listApps
         loading.value = false
       }, 1000)
-      numberOfPages.value = appStore.numberOfPages
-      apps.value = appStore.listApps
     }
 
     watch(activeProject, () => {
