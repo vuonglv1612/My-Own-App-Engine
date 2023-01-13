@@ -7,15 +7,25 @@
             <div class="text-h6">Danh sách giao dịch</div>
           </q-card-section>
           <q-separator/>
-          <q-card-section class="q-pa-xs">
+          <q-card-section>
             <div class="row">
               <div class="col-xs-12">
-                <q-table
-                  flat
-                  :rows="rows"
-                  :columns="columns"
-                  row-key="invoice_id"
-                />
+                <q-input outlined :model-value="`${transactionRange.from} - ${transactionRange.to}`">
+                  <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer">
+                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                        <q-date v-model="transactionRange" range>
+                          <div class="row items-center justify-end">
+                            <q-btn v-close-popup label="Close" color="primary" flat/>
+                          </div>
+                        </q-date>
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
+              </div>
+              <div class="col-xs-12">
+                <AjaxTableComponent flat :columns="columns" :fetch-from-server="fetchFromServer"/>
               </div>
             </div>
           </q-card-section>
@@ -29,8 +39,12 @@
 <script>
 import { date } from 'quasar'
 
+import AjaxTableComponent from 'components/AjaxTableComponent.vue'
+import { ref, watch } from 'vue'
+
 export default {
   name: 'BillingTransactionPage',
+  components: { AjaxTableComponent },
   setup () {
     const formatDate = (strDate) => {
       const timeStamp = Date(strDate)
@@ -96,9 +110,26 @@ export default {
         transaction_status: 'Thành công'
       }
     ]
+
+    function fetchFromServer (pageOffset, pageSize, filter, sortBy, descending) {
+      const total = rows.length
+      if (pageSize) {
+        return { records: rows.slice(pageOffset, pageOffset + pageSize), total }
+      } else {
+        return { records: rows, total }
+      }
+    }
+
+    const transactionRange = ref({ from: Date.now(), to: Date.now() })
+    watch(transactionRange.value, () => {
+      console.log(transactionRange)
+    })
+
     return {
       rows,
-      columns
+      columns,
+      fetchFromServer,
+      transactionRange
     }
   }
 }
