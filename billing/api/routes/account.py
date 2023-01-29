@@ -20,16 +20,14 @@ class CreateAccountBody(BaseModel):
 
 @router.post("")
 async def create_account(body: CreateAccountBody, uow: UnitOfWork = Depends(unit_of_work)):
+    """
+    Create a new account
+    """
     command = account_usecases.CreateAccountCommand(
         name=body.name,
         address=body.address,
         description=body.description
     )
-    async with uow:
-        handler = account_usecases.CreateAccountUseCase(
-            uow.account_repository,
-            uow.account_balance_repository
-        )
-        response = await handler.handle(command)
-        await uow.commit()
+    handler = account_usecases.CreateAccountUseCase(uow)
+    response = await handler.handle(command)
     return response

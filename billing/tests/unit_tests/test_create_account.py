@@ -6,15 +6,13 @@ from core.usecases.account.create_account import CreateAccountUseCase, CreateAcc
 @pytest.mark.asyncio
 async def test_create_new_account(uow_factory):
     uow = uow_factory.for_create_account()
-    async with uow:
-        handler = CreateAccountUseCase(uow.account_repository, uow.account_balance_repository)
-        command = CreateAccountCommand(
-            name='Test Account',
-            address='Test Address',
-            description='Test Description'
-        )
-        response = await handler.handle(command)
-        await uow.commit()
+    handler = CreateAccountUseCase(uow)
+    command = CreateAccountCommand(
+        name='Test Account',
+        address='Test Address',
+        description='Test Description'
+    )
+    response = await handler.handle(command)
 
     account = await uow.account_repository.get(response.id)
     account_balance = await uow.account_balance_repository.get_by_account_id(response.id)
@@ -24,3 +22,4 @@ async def test_create_new_account(uow_factory):
     assert account.description == 'Test Description'
     assert account_balance.amount == 0.0
     assert account_balance.transactions == []
+    assert uow.committed

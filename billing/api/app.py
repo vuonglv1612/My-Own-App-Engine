@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
 from .routes import account
+from .routes import product
 
 app = FastAPI()
 
@@ -12,3 +13,4 @@ def read_root():
 
 
 app.include_router(account.router, prefix="/accounts", tags=["account"])
+app.include_router(product.router, prefix="/products", tags=["product"])
