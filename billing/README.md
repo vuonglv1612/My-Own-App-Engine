@@ -24,5 +24,17 @@ sudo apt-get install libpq-dev python3-dev
 poetry install --with migration
 ```
 
+#### Create New Revision
+
+```bash
+poetry run alembic -c infrastructure/postgres/migration/alembic.ini revision --autogenerate --rev-id 002 -m "Added Product"
+```
+
+#### Upgrade Database
+
+```bash
+poetry run alembic -c infrastructure/postgres/migration/alembic.ini upgrade head
+```
+
 ### Usage
 

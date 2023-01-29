@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional
 
 from core.interfaces.repositories import AccountBalanceRepository
@@ -5,6 +6,9 @@ from core.models import AccountBalance
 
 
 class FakeAccountBalanceRepository(AccountBalanceRepository):
+    async def next_id(self) -> str:
+        return str(uuid.uuid4().hex)
+
     def __init__(self):
         self._account_balances = {}
 

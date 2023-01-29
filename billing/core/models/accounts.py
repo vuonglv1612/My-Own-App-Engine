@@ -4,11 +4,13 @@ from typing import List
 
 from attrs import define, field
 
+from utils.datetime import aware_now
+
 
 @define(kw_only=True, slots=False)
 class Transaction:
     id: str = field(factory=lambda: str(uuid.uuid4().hex))
-    created_at: datetime = field(factory=datetime.now)
+    created_at: datetime = field(factory=aware_now)
     account_id: str = field()
     amount: float = field()
     transaction_type: str = field()
@@ -18,7 +20,7 @@ class Transaction:
 @define(kw_only=True, slots=False)
 class AccountBalance:
     id: str = field(factory=lambda: str(uuid.uuid4().hex))
-    created_at: datetime = field(factory=datetime.now)
+    created_at: datetime = field(factory=aware_now)
     amount: float = field(default=0.0)
     account_id: str = field()
     transactions: List[Transaction] = field(factory=list)
@@ -28,7 +30,7 @@ class AccountBalance:
 @define(kw_only=True, slots=False)
 class Account:
     id: str = field(factory=lambda: str(uuid.uuid4().hex))
-    created_at: datetime = field(factory=datetime.utcnow)
+    created_at: datetime = field(factory=aware_now)
     deleted_at: datetime = field(default=None)
     name: str = field(default=None)
     address: str = field(default=None)

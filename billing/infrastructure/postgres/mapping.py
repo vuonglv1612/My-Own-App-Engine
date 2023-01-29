@@ -12,3 +12,5 @@ def start_mapping():
         "transactions": relationship(models.Transaction),
     }, version_id_col=tables.AccountBalanceTable.c.version_number)
     mapper_registry.map_imperatively(models.Transaction, tables.TransactionTable)
+    mapper_registry.map_imperatively(models.Product, tables.ProductTable,
+                                     version_id_col=tables.ProductTable.c.version_number)

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional, TypeVar, Type
+from uuid import uuid4
 
 from sqlalchemy import select
 
@@ -16,6 +17,9 @@ class SqlalchemyRepository(Repository[T], ABC):
     @abstractmethod
     def entity(self) -> Type[T]:
         pass
+
+    async def next_id(self) -> str:
+        return str(uuid4().hex)
 
     async def add(self, entity: T) -> None:
         self._session.add(entity)
