@@ -7,7 +7,7 @@ from attrs import define, field
 
 @define(kw_only=True, slots=False)
 class Transaction:
-    id: str = field(factory=lambda: str(uuid.uuid4()))
+    id: str = field(factory=lambda: str(uuid.uuid4().hex))
     created_at: datetime = field(factory=datetime.now)
     account_id: str = field()
     amount: float = field()
@@ -17,7 +17,7 @@ class Transaction:
 
 @define(kw_only=True, slots=False)
 class AccountBalance:
-    id: str = field(factory=lambda: str(uuid.uuid4()))
+    id: str = field(factory=lambda: str(uuid.uuid4().hex))
     created_at: datetime = field(factory=datetime.now)
     amount: float = field(default=0.0)
     account_id: str = field()
@@ -27,7 +27,7 @@ class AccountBalance:
 
 @define(kw_only=True, slots=False)
 class Account:
-    id: str = field(factory=lambda: str(uuid.uuid4()))
+    id: str = field(factory=lambda: str(uuid.uuid4().hex))
     created_at: datetime = field(factory=datetime.utcnow)
     deleted_at: datetime = field(default=None)
     name: str = field(default=None)

@@ -1,24 +1,26 @@
 from abc import abstractmethod, ABC
-from typing import Optional
+from typing import Optional, TypeVar, Generic
 
 from core.models.accounts import Account, AccountBalance
 
+T = TypeVar("T")
 
-class AccountRepository(ABC):
+
+class Repository(ABC, Generic[T]):
     @abstractmethod
-    async def add(self, account: Account) -> None:
+    async def add(self, entity: T) -> None:
         pass
 
     @abstractmethod
-    async def get(self, account_id: str) -> Optional[Account]:
+    async def get(self, entity_id: str) -> Optional[T]:
         pass
 
 
-class AccountBalanceRepository(ABC):
-    @abstractmethod
-    async def add(self, account_balance: AccountBalance) -> None:
-        pass
+class AccountRepository(Repository[Account], ABC):
+    pass
 
+
+class AccountBalanceRepository(Repository[AccountBalance], ABC):
     @abstractmethod
-    async def get(self, account_id: str) -> Optional[AccountBalance]:
+    async def get_by_account_id(self, account_id: str) -> Optional[AccountBalance]:
         pass

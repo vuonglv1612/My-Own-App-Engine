@@ -1,32 +1,25 @@
-from core.interfaces.repositories import AccountRepository, AccountBalanceRepository
+from infrastructure.services.unit_of_work import UnitOfWork
 from .account_balance_repository import FakeAccountBalanceRepository
 from .account_repository import FakeAccountRepository
 
 
-class UnitOfWork(object):
-    """Fake unit of work for testing."""
-    account_repository: AccountRepository
-    account_balance_repository: AccountBalanceRepository
-
-    def __init__(self):
-        self.committed = False
-
-    def __enter__(self):
+class FakeUnitOfWork(UnitOfWork):
+    async def __aenter__(self):
         self.account_repository = FakeAccountRepository()
         self.account_balance_repository = FakeAccountBalanceRepository()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.rollback()
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        pass
 
-    def commit(self):
-        self.committed = True
+    async def commit(self):
+        pass
 
-    def rollback(self):
+    async def rollback(self):
         pass
 
 
 class UnitOfWorkFactory:
     @staticmethod
     def for_create_account():
-        return UnitOfWork()
+        return FakeUnitOfWork()

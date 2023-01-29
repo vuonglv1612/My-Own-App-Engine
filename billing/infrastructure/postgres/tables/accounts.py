@@ -1,14 +1,14 @@
-from sqlalchemy import Table, Column, String, Integer
+from sqlalchemy import Table, Column, String, Integer, DateTime
 
 from utils.datetime import naive_now
-from .base import metadata, TimeStamp
+from .base import metadata
 
 AccountTable = Table(
     "accounts",
     metadata,
     Column("id", String(32), primary_key=True),
-    Column("created_at", TimeStamp(), index=True, default=naive_now),
-    Column("deleted_at", TimeStamp()),
+    Column("created_at", DateTime, index=True, default=naive_now),
+    Column("deleted_at", DateTime),
     Column("name", String(255)),
     Column("address", String(255)),
     Column("description", String(255)),

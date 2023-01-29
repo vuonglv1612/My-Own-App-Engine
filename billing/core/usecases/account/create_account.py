@@ -31,8 +31,8 @@ class CreateAccountUseCase:
         self._account_repository = account_repository
         self._account_balance_repository = account_balance_repository
 
-    async def handle(self, command: CreateAccountCommand):
-        account_id = str(uuid.uuid4())
+    async def handle(self, command: CreateAccountCommand) -> CreateAccountResponse:
+        account_id = str(uuid.uuid4().hex)
         account = Account(
             id=account_id,
             name=command.name,
