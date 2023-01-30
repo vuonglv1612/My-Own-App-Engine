@@ -1,6 +1,7 @@
 from core.interfaces.unit_of_work import UnitOfWork
 from ..repositories_adapters.sqlalchemy_account_balance_repo import SqlalchemyAccountBalanceRepository
 from ..repositories_adapters.sqlalchemy_account_repo import SqlalchemyAccountRepository
+from ..repositories_adapters.sqlalchemy_price_repo import SqlalchemyPriceRepository
 from ..repositories_adapters.sqlalchemy_product_repo import SqlalchemyProductRepository
 
 
@@ -13,6 +14,7 @@ class SqlalchemyUnitOfWork(UnitOfWork):
         self.account_repository = SqlalchemyAccountRepository(self.session)
         self.account_balance_repository = SqlalchemyAccountBalanceRepository(self.session)
         self.product_repository = SqlalchemyProductRepository(self.session)
+        self.price_repository = SqlalchemyPriceRepository(self.session)
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):

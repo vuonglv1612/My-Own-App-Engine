@@ -1,7 +1,9 @@
+from datetime import datetime
 from typing import Optional
 
+from attrs import asdict
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from api.dependencies import unit_of_work
 from core.interfaces.unit_of_work import UnitOfWork
@@ -16,7 +18,15 @@ class CreateProductBody(BaseModel):
     unit_label: Optional[str] = None
 
 
-@router.post("")
+class CreateProductResponse(BaseModel):
+    id: str = Field(..., example="product_id")
+    created_at: datetime = Field(..., example="2021-01-01T00:00:00Z")
+    name: str = Field(..., example="CPU")
+    description: str = Field(..., example="CPU")
+    unit_label: str = Field(..., example="Core")
+
+
+@router.post("", response_model=CreateProductResponse)
 async def create_product(body: CreateProductBody, uow: UnitOfWork = Depends(unit_of_work)):
     """
     Create a new product
@@ -28,4 +38,4 @@ async def create_product(body: CreateProductBody, uow: UnitOfWork = Depends(unit
     )
     handler = CreateProductUseCase(uow)
     response = await handler.handle(command)
-    return response
+    return asdict(response)

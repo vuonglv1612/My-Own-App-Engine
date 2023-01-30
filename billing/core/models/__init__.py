@@ -1,4 +1,5 @@
 from .accounts import Account, AccountBalance, Transaction
+from .prices import Price
 from .products import Product
 
 __all__ = [
@@ -6,4 +7,5 @@ __all__ = [
     "AccountBalance",
     "Transaction",
     "Product",
+    "Price",
 ]

@@ -28,7 +28,7 @@ def validate_tiers(instance, attribute, value):
         raise InvalidPriceTiersError("At least one tier is required")
     if len(new_value) == 1:
         if new_value[0].up_to != float("inf"):
-            raise InvalidPriceTiersError("If only one tier, value.up_to must be 'inf'")
+            raise InvalidPriceTiersError("If only one tier, tier.up_to must be 'inf'")
     else:
         if new_value[-1].up_to != float("inf"):
             raise InvalidPriceTiersError("If more than one tier, the last tier must be 'inf'")

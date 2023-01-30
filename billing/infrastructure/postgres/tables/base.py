@@ -1,6 +1,8 @@
+import json
 from datetime import datetime
 
 import sqlalchemy as sa
+from attrs import asdict
 from sqlalchemy import MetaData
 
 from utils.datetime import aware_to_naive, naive_to_aware
@@ -22,3 +24,15 @@ class TimeStamp(sa.types.TypeDecorator):
             return naive_to_aware(value)
         else:
             return value
+
+
+def _default(val):
+    if hasattr(val, '__attrs_attrs__'):
+        return asdict(val)
+    if isinstance(val, datetime):
+        return val.isoformat()
+    raise TypeError()
+
+
+def custom_json_serializer(d):
+    return json.dumps(d, default=_default)
