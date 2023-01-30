@@ -2,6 +2,7 @@ from abc import abstractmethod, ABC
 from typing import Optional, TypeVar, Generic
 
 from core.models.accounts import Account, AccountBalance
+from core.models.prices import Price
 from core.models.products import Product
 
 T = TypeVar("T")
@@ -10,15 +11,21 @@ T = TypeVar("T")
 class Repository(ABC, Generic[T]):
     @abstractmethod
     async def next_id(self) -> str:
-        raise NotImplementedError
+        """
+        Returns the next id for the repository.
+        """
 
     @abstractmethod
     async def add(self, entity: T) -> None:
-        pass
+        """
+        Adds the entity to the repository.
+        """
 
     @abstractmethod
     async def get(self, entity_id: str) -> Optional[T]:
-        pass
+        """
+        Returns the entity with the given id.
+        """
 
 
 class AccountRepository(Repository[Account], ABC):
@@ -28,8 +35,14 @@ class AccountRepository(Repository[Account], ABC):
 class AccountBalanceRepository(Repository[AccountBalance], ABC):
     @abstractmethod
     async def get_by_account_id(self, account_id: str) -> Optional[AccountBalance]:
-        pass
+        """
+        Returns the account balance for the given account id.
+        """
 
 
 class ProductRepository(Repository[Product], ABC):
+    pass
+
+
+class PriceRepository(Repository[Price], ABC):
     pass

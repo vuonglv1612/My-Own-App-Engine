@@ -39,8 +39,8 @@ class Account:
     phone: str = field(default=None)
     version_number: int = field(default=1)
 
-    def update_info(self, **kwargs):
-        for k, v in kwargs.items():
-            if hasattr(self, k):
-                setattr(self, k, v)
-        self.version_number += 1
+    # def update_info(self, **kwargs):
+    #     for k, v in kwargs.items():
+    #         if hasattr(self, k):
+    #             setattr(self, k, v)
+    #     self.version_number += 1
