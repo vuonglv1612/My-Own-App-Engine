@@ -12,6 +12,8 @@ docker = "^6.0.1"
 environs = "^9.5.0"
 fastapi = "^0.89.1"
 uvicorn = "^0.20.0"
+python-multipart = "^0.0.5"
+aiofiles = "^22.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
