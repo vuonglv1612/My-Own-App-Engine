@@ -15,3 +15,7 @@ def start_mapping():
     mapper_registry.map_imperatively(models.Product, tables.ProductTable,
                                      version_id_col=tables.ProductTable.c.version_number)
     mapper_registry.map_imperatively(models.Price, tables.PriceTable)
+    mapper_registry.map_imperatively(models.Subscription, tables.SubscriptionTable)
+    mapper_registry.map_imperatively(models.SubscriptionItem, tables.SubscriptionItemsTable)
+    mapper_registry.map_imperatively(models.Invoice, tables.InvoiceTable)
+    mapper_registry.map_imperatively(models.InvoiceLine, tables.InvoiceLineTable)

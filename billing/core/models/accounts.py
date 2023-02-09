@@ -26,6 +26,13 @@ class AccountBalance:
     transactions: List[Transaction] = field(factory=list)
     version_number: int = field(default=1)
 
+    def charge(amount):
+        # tao transaction
+        pass
+
+    def topup(amount):
+        pass
+
 
 @define(kw_only=True, slots=False)
 class Account:

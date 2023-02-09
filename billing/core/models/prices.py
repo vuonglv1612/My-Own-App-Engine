@@ -68,3 +68,35 @@ class Price:
     active: bool = field(default=True)
     lookup_key: str = field(default=None)
     tiers_mode: str = field(default="graduated", validator=validate_price_tier_mode)
+
+    def billing(self, quantity) -> int:
+        if self.tiers_mode == "volume":
+            for i in range(len(self.tiers)):
+                if quantity <= float(self.tiers[i].up_to):
+                    return quantity * self.tiers[i].unit_amount + self.tiers[i].flat_amount
+        if self.tiers_mode == "graduated":
+            price = 0
+            for i in range(len(self.tiers)):
+                up_to_prev = 0 if i == 0 else self.tiers[i-1].up_to
+                if quantity <= float(self.tiers[i].up_to):
+                    price += (quantity - up_to_prev) * self.tiers[i].unit_amount + self.tiers[i].flat_amount
+                    break
+                else:
+                    price += (self.tiers[i].up_to - up_to_prev) * self.tiers[i].unit_amount + self.tiers[i].flat_amount
+            return price
+
+    def line_billing(self, quantity) -> int:
+        if self.tiers_mode == "volume":
+            for i in range(len(self.tiers)):
+                if quantity <= float(self.tiers[i]["up_to"]):
+                    return quantity * self.tiers[i]["unit_amount"] + self.tiers[i]["flat_amount"]
+        if self.tiers_mode == "graduated":
+            price = 0
+            for i in range(len(self.tiers)):
+                up_to_prev = 0 if i == 0 else self.tiers[i-1]["up_to"]
+                if quantity <= float(self.tiers[i]["up_to"]):
+                    price += (quantity - up_to_prev) * self.tiers[i]["unit_amount"] + self.tiers[i]["flat_amount"]
+                    break
+                else:
+                    price += (self.tiers[i]["up_to"] - up_to_prev) * self.tiers[i]["unit_amount"] + self.tiers[i]["flat_amount"]
+            return price

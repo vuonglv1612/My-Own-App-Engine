@@ -3,6 +3,10 @@ from ..repositories_adapters.sqlalchemy_account_balance_repo import SqlalchemyAc
 from ..repositories_adapters.sqlalchemy_account_repo import SqlalchemyAccountRepository
 from ..repositories_adapters.sqlalchemy_price_repo import SqlalchemyPriceRepository
 from ..repositories_adapters.sqlalchemy_product_repo import SqlalchemyProductRepository
+from ..repositories_adapters.sqlalchemy_subscription_repo import SqlalchemySubscriptionRepository
+from ..repositories_adapters.sqlalchemy_subscription_item_repo import SqlalchemySubscriptionItemRepository
+from ..repositories_adapters.sqlalchemy_invoice_repo import SqlalchemyInvoiceRepository
+from ..repositories_adapters.sqlalchemy_transaction_repo import SqlalchemyTransactionRepository
 
 
 class SqlalchemyUnitOfWork(UnitOfWork):
@@ -15,6 +19,10 @@ class SqlalchemyUnitOfWork(UnitOfWork):
         self.account_balance_repository = SqlalchemyAccountBalanceRepository(self.session)
         self.product_repository = SqlalchemyProductRepository(self.session)
         self.price_repository = SqlalchemyPriceRepository(self.session)
+        self.subscription_repository = SqlalchemySubscriptionRepository(self.session)
+        self.subscription_item_repository = SqlalchemySubscriptionItemRepository(self.session)
+        self.invoice_repository = SqlalchemyInvoiceRepository(self.session)
+        self.transaction_repository = SqlalchemyTransactionRepository(self.session)
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):

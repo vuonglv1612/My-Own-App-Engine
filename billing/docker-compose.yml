@@ -1,0 +1,46 @@
+version: "3.5"
+
+services:
+  billing_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python start_api.py
+    env_file:
+      - .env
+    restart: unless-stopped
+    ports:
+        - "8000:8000"
+    logging:
+      driver: "json-file"
+      options:
+          max-size: "500M"
+          max-file: "5"
+
+  renew_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python renew_worker.py
+    env_file:
+      - .env
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+          max-size: "500M"
+          max-file: "5"
+
+  overdue_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python overdue_invoice_worker.py
+    env_file:
+      - .env
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+          max-size: "500M"
+          max-file: "5"

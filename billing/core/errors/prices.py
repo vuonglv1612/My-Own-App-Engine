@@ -7,3 +7,12 @@ class InvalidPriceTiersError(BusinessError):
 
 class InvalidPriceTiersModeError(BusinessError):
     pass
+
+
+class PriceNotFoundError(BusinessError):
+    pass
+
+
+class InvalidPriceError(BusinessError):
+    pass
+
