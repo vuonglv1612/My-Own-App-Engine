@@ -1,0 +1,5 @@
+apiVersion: v2
+name: rpaas-slo-controller
+description: Integrate slo-generator with rpaasinstances
+type: application
+version: 0.1.3

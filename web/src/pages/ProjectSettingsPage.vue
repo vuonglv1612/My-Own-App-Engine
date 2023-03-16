@@ -31,11 +31,17 @@
 <script>
 
 import { useQuasar } from 'quasar'
+import { useMemberStore } from 'stores/members-store'
+import { useProjectStore } from 'stores/project-store'
+import { storeToRefs } from 'pinia'
 
 export default {
   name: 'PageName',
   setup () {
     const $q = useQuasar()
+    const projectStore = useProjectStore()
+    const { activeProject } = storeToRefs(projectStore)
+    const memberStore = useMemberStore()
     const onDeleteProject = () => {
       $q.dialog({
         title: 'Xóa dự án',
@@ -43,8 +49,29 @@ export default {
         cancel: true,
         persistent: true
       }).onOk(() => {
-        // TODO: delete app
-        alert('delete project')
+        memberStore.deleteProject(activeProject.value.id, (err, response) => {
+          if (err) {
+            const reason = err.response.data.detail.error || 'Xóa dự án thất bại'
+            $q.notify({
+              type: 'negative',
+              message: reason,
+              position: 'top',
+              timeout: 2000,
+              icon: 'warning'
+            })
+          } else {
+            $q.notify({
+              type: 'positive',
+              message: 'Xóa dự án thành công',
+              position: 'top',
+              timeout: 2000,
+              icon: 'check_circle'
+            })
+            projectStore.fetchProjects(() => {
+              projectStore.setActiveProject(null)
+            })
+          }
+        })
       })
     }
     return {

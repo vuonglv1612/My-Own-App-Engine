@@ -35,9 +35,9 @@ export default {
     }
     const iconMapping = (type) => {
       switch (type) {
-        case 'create':
+        case 'app.created':
           return { icon: 'fiber_new', color: 'primary' }
-        case 'release':
+        case 'app.deployed':
           return { icon: 'rocket_launch', color: 'positive' }
         default:
           return ''

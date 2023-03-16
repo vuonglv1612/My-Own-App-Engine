@@ -1,6 +1,14 @@
 <template>
   <q-page padding>
     <div class="row">
+      <q-inner-loading :showing="loading">
+        <div class="row">
+          <q-spinner-ios
+            color="primary"
+            size="4em"
+          />
+        </div>
+      </q-inner-loading>
       <div class="col-xs-12 col-md-8 q-pa-sm">
         <div class="row">
           <q-card id="deposit-box" class="my-card fit">
@@ -16,25 +24,38 @@
                 </div>
               </div>
             </q-card-section>
-          </q-card>
-        </div>
-        <div class="row q-mt-md">
-          <q-card class="my-card fit">
-            <q-card-section>
-              <div class="text-h6">Thông tin Image</div>
+            <q-card-section class="q-pa-none">
+              <q-btn
+                v-if="app.status === 'running'"
+                flat
+                class="fit"
+                color="primary"
+                align="left"
+                label="Thay đổi số lượng"
+                icon="scale"
+                @click="onScale"
+              />
+              <q-btn
+                v-if="app.status !== 'created'"
+                flat
+                class="fit"
+                color="primary"
+                align="left"
+                label="Khởi động lại ứng dụng"
+                icon="restart_alt"
+                @click="onRestart"
+              />
+              <q-btn
+                flat
+                v-if="app.status === 'running'"
+                class="fit"
+                color="negative"
+                align="left"
+                label="Tắt ứng dụng"
+                icon="power_off"
+                @click="onPowerOff"
+              />
             </q-card-section>
-            <q-separator/>
-            <q-card-section class="q-pa-xs">
-              <div class="row">
-                <div class="row">
-                  <div v-for="field in imageFields" :key="field.name" class="col-xs-12 q-pa-sm">
-                    <div class="text-subtitle1 q-pl-sm">{{ field.label }}</div>
-                    <div class="text-subtitle2 q-pl-sm">{{ field.value }}</div>
-                  </div>
-                </div>
-              </div>
-            </q-card-section>
-            <q-separator/>
           </q-card>
         </div>
       </div>
@@ -72,104 +93,211 @@
 import { useActivityStore } from 'stores/activity-store'
 import { onMounted, ref } from 'vue'
 import ActivityHistoryComponent from 'components/ActivityHistoryComponent.vue'
+import { useRoute } from 'vue-router'
+import { useProjectStore } from 'stores/project-store'
+import { useAppStore } from 'stores/app-store'
+import { useQuasar } from 'quasar'
 
 export default {
   name: 'AppOverViewPage',
   components: { ActivityHistoryComponent },
   setup () {
+    const $q = useQuasar()
+    const route = useRoute()
+    const projectStore = useProjectStore()
+    const appStore = useAppStore()
     const activityStore = useActivityStore()
     const lastActivities = ref([])
+    const appId = ref(route.params.appId)
+    const app = ref({})
+    const appFields = ref([])
+    const imageFields = ref([])
+    const loading = ref(false)
+    const replicas = ref(app.value?.replicas || 1)
 
     onMounted(() => {
-      activityStore.fetchActivities()
-      lastActivities.value = activityStore.latestActivities
+      projectStore.fetchProjects(() => {
+        loadData()
+      })
     })
-    const app = ref({
-      name: 'Vuonglv Test App',
-      app_id: 'vuonglv-app',
-      platform: 'Python',
-      address: 'https://vuonglv-app.ipaas.site',
-      status: 'Running',
-      created_at: '2021-05-20T10:00:00Z',
-      size: {
-        cpu: 5,
-        memory: 2560
-      },
-      image: {
-        registry: 'registry.ipaas.site',
-        repository: 'vuonglv-app',
-        tag: 'production-1.0.0',
-        digest: 'sha256:81587739dc6b02b0f7281a14018d9eae3a2a4edeedf307363c9943e8dd68136d'
-      }
-    })
-    const appFields = ref([
-      {
-        name: 'name',
-        label: 'Tên ứng dụng',
-        value: app.value.name
-      },
-      {
-        name: 'app_id',
-        label: 'Mã ứng dụng',
-        value: app.value.app_id
-      },
-      {
-        name: 'platform',
-        label: 'Nền tảng',
-        value: app.value.platform
-      },
-      {
-        name: 'address',
-        label: 'Địa chỉ',
-        value: app.value.address
-      },
-      {
-        name: 'status',
-        label: 'Trạng thái',
-        value: app.value.status
-      },
-      {
-        name: 'created_at',
-        label: 'Ngày tạo',
-        value: app.value.created_at
-      },
-      {
-        name: 'cpu',
-        label: 'CPU sử dụng',
-        value: app.value.size.cpu + ' CPU'
-      },
-      {
-        name: 'memory',
-        label: 'Bộ nhớ sử dụng',
-        value: app.value.size.memory + ' MB'
-      }
-    ])
-    const imageFields = [
-      {
-        name: 'registry',
-        label: 'Registry',
-        value: app.value.image.registry
-      },
-      {
-        name: 'repository',
-        label: 'Repository',
-        value: app.value.image.repository
-      },
-      {
-        name: 'tag',
-        label: 'Tag',
-        value: app.value.image.tag
-      },
-      {
-        name: 'digest',
-        label: 'Digest',
-        value: app.value.image.digest
-      }
-    ]
+    const loadData = () => {
+      loading.value = true
+      activityStore.fetchActivities(projectStore.activeProject?.id, appId.value, () => {
+        lastActivities.value = activityStore.latestActivities
+      })
+      appStore.getApp(projectStore.activeProject?.id, appId.value, (data) => {
+        app.value = data
+        replicas.value = app.value?.replicas || 1
+        appFields.value = [
+          {
+            name: 'name',
+            label: 'Tên ứng dụng',
+            value: app.value.name
+          },
+          {
+            name: 'platform',
+            label: 'Nền tảng',
+            value: app.value.platform
+          },
+          {
+            name: 'address',
+            label: 'Địa chỉ',
+            value: app.value.address
+          },
+          {
+            name: 'status',
+            label: 'Trạng thái',
+            value: app.value.status
+          },
+          {
+            name: 'created_at',
+            label: 'Ngày tạo',
+            value: app.value.created_at
+          },
+          {
+            name: 'cpu',
+            label: 'CPU',
+            value: (app.value.cpu / 1000) + ' vCPU'
+          },
+          {
+            name: 'cpu',
+            label: 'RAM',
+            value: app.value.memory + 'MB'
+          },
+          {
+            name: 'replicas',
+            label: 'Số lượng',
+            value: app.value.replicas
+          }
+        ]
+        imageFields.value = [
+          {
+            name: 'registry',
+            label: 'Registry',
+            value: app.value.image?.registry
+          },
+          {
+            name: 'repository',
+            label: 'Repository',
+            value: app.value.image?.repository
+          },
+          {
+            name: 'tag',
+            label: 'Tag',
+            value: app.value.image?.tag
+          },
+          {
+            name: 'digest',
+            label: 'Digest',
+            value: app.value.image?.digest
+          }
+        ]
+        loading.value = false
+      })
+    }
+
+    const onScale = () => {
+      $q.dialog({
+        title: 'Cài đặt số lượng ứng dụng',
+        message: 'Số lượng ứng dụng',
+        prompt: {
+          model: replicas.value,
+          type: 'number',
+          min: 1,
+          max: 100
+        },
+        cancel: true,
+        persistent: true
+      }).onOk((data) => {
+        if (data < 1) {
+          $q.notify({
+            message: 'Số lượng ứng dụng phải lớn hơn 0',
+            color: 'negative',
+            position: 'top',
+            timeout: 2000,
+            icon: 'warning'
+          })
+          return
+        }
+        appStore.scaleApp(appId.value, data, (err, response) => {
+          if (err) {
+            $q.notify({
+              message: 'Không thể cài đặt số lượng ứng dụng',
+              color: 'negative',
+              position: 'top',
+              timeout: 2000,
+              icon: 'warning'
+            })
+          } else {
+            $q.notify({
+              message: 'Đã cài đặt số lượng ứng dụng',
+              color: 'positive',
+              position: 'top',
+              timeout: 2000,
+              icon: 'check'
+            })
+            loadData()
+          }
+        })
+      })
+    }
+
+    const onRestart = () => {
+      appStore.restartApp(appId.value, (err, response) => {
+        if (err) {
+          $q.notify({
+            message: 'Không thể khởi động lại ứng dụng',
+            color: 'negative',
+            position: 'top',
+            timeout: 2000,
+            icon: 'warning'
+          })
+        } else {
+          $q.notify({
+            message: 'Đã khởi động lại ứng dụng',
+            color: 'positive',
+            position: 'top',
+            timeout: 2000,
+            icon: 'check'
+          })
+          loadData()
+        }
+      })
+    }
+
+    const onPowerOff = () => {
+      appStore.stopApp(appId.value, (err, response) => {
+        if (err) {
+          $q.notify({
+            message: 'Không thể tắt ứng dụng',
+            color: 'negative',
+            position: 'top',
+            timeout: 2000,
+            icon: 'warning'
+          })
+        } else {
+          $q.notify({
+            message: 'Đã tắt ứng dụng',
+            color: 'positive',
+            position: 'top',
+            timeout: 2000,
+            icon: 'check'
+          })
+          loadData()
+        }
+      })
+    }
+
     return {
       lastActivities,
       appFields,
-      imageFields
+      imageFields,
+      loading,
+      app,
+
+      onScale,
+      onRestart,
+      onPowerOff
     }
   }
 }

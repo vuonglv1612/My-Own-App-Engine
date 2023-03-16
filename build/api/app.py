@@ -1,76 +1,67 @@
-import asyncio
-import os
-import shutil
-from functools import partial
-
-import aiofiles
-from fastapi import FastAPI, File, UploadFile, Body
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, Depends
 from pydantic import BaseModel
-from config import settings
-from use_cases.build_from_zip import build_from_zip
-from functions import push
+
+from task_manager import TaskManager
+from .dependencies import get_task_manager
 
 app = FastAPI()
 
 
-async def run_in_thread(func):
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, func)
+class DeployGitProject(BaseModel):
+    deployment_id: str
+    app_name: str
+    git_url: str
+    git_branch: str
+    plan_name: str
+    replicas: int = 1
 
 
-class BuildFromZipRequest(BaseModel):
-    image_name: str
-    image_tag: str
-    buildpack: str = None
+@app.post("/deploy-git")
+def deploy_git(body: DeployGitProject, task_manager: TaskManager = Depends(get_task_manager)):
+    task_manager.send_task("deploy_git_app", body.dict())
+    return {"status": "ok"}
 
 
-@app.post("/build-from-zip")
-async def build_from_zip_router(
-    user_id: str = Body(...),
-    image_name: str = Body(...),
-    version: str = Body(..., example="v1.0"),
-    buildpack: str = Body(None),
-    file: UploadFile = File(...),
-):
-    # Save file to disk
-    file_name = os.path.join(settings.file_path, user_id, file.filename)
-    build_folder = os.path.join(
-        settings.build_folder, user_id, file.filename.replace(".", "_")
-    )
-    os.makedirs(os.path.dirname(file_name), exist_ok=True)
-    async with aiofiles.open(file_name, "wb") as buffer:
-        await buffer.write(await file.read())
-
-    async def _build_from_zip():
-        async for data in await run_in_thread(
-            partial(
-                build_from_zip,
-                file_name,
-                build_folder,
-                image_name,
-                version,
-                settings.builder,
-                buildpack,
-            )
-        ):
-            yield data
-        async for data in await run_in_thread(
-            partial(
-                push,
-                image_name,
-                version,
-                settings.registry,
-                settings.namespace,
-                settings.username,
-                settings.password,
-            )
-        ):
-            yield data
-
-    return StreamingResponse(_build_from_zip(), media_type="text/plain")
+class DeployImageProject(BaseModel):
+    deployment_id: str
+    app_name: str
+    image: str
+    plan_name: str
+    replicas: int = 1
 
 
-@app.post("/build-from-git")
-def build_from_git():
-    pass
+@app.post("/deploy-image")
+def deploy_image(body: DeployImageProject, task_manager: TaskManager = Depends(get_task_manager)):
+    task_manager.send_task("deploy_image_app", body.dict())
+    return {"status": "ok"}
+
+
+class ScaleApp(BaseModel):
+    app_name: str
+    change: int
+
+
+@app.post("/scale")
+def scale(body: ScaleApp, task_manager: TaskManager = Depends(get_task_manager)):
+    task_manager.send_task("scale_app", {"app_name": body.app_name, "change": body.change})
+    return {"status": "ok"}
+
+
+class StopApp(BaseModel):
+    app_name: str
+
+
+@app.post("/stop")
+def stop(body: StopApp, task_manager: TaskManager = Depends(get_task_manager)):
+    task_manager.send_task("stop_app", {"app_name": body.app_name})
+    return {"status": "ok"}
+
+
+class RestartApp(BaseModel):
+    app_name: str
+
+
+@app.post("/restart")
+def restart(body: RestartApp, task_manager: TaskManager = Depends(get_task_manager)):
+    task_manager.send_task("restart_app", {"app_name": body.app_name})
+    return {"status": "ok"}

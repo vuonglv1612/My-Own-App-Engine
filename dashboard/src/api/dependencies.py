@@ -1,5 +1,5 @@
-from src.dependencies import create_session_factory
-from src.services.provisioner import TsuruProvisioner
+from src.dependencies import billing_client_factory, provisioner_factory, deploy_client_factory
+from src.dependencies import create_session_factory, redis_client_factory
 from src.services.unit_of_work import SQLAlchemyUnitOfWork
 
 
@@ -10,9 +10,21 @@ async def unit_of_work():
     return uow
 
 
+async def get_billing_client():
+    """Provide a billing client."""
+    return billing_client_factory()
+
+
 async def get_provisioner():
     """Provide a provisioner."""
-    # TODO: Use a factory to create the provisioner.
-    tsuru_url = "http://tsuru:8080"
-    tsuru_token = "token"
-    return TsuruProvisioner(tsuru_api_url=tsuru_url, tsuru_token=tsuru_token)
+    return provisioner_factory()
+
+
+async def get_deploy_client():
+    """Provide a deploy client."""
+    return deploy_client_factory()
+
+
+async def get_redis_client():
+    """Provide a redis client."""
+    return redis_client_factory()

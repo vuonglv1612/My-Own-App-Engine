@@ -1,4 +1,6 @@
 import { defineStore } from 'pinia'
+import { auth0 } from 'app/auth0'
+import { api } from 'boot/axios'
 
 const rawActivities = [
   {
@@ -64,8 +66,30 @@ export const useActivityStore = defineStore('activityStore', {
   },
 
   actions: {
-    fetchActivities () {
-      this.activities = rawActivities
+
+    fetchActivities (projectId, appName, callback) {
+      auth0.getAccessTokenSilently().then((token) => {
+        const headers = {}
+        api.get('/projects/' + projectId + '/apps/' + appName + '/activities', { headers }).then(
+          response => {
+            const items = response.data.items
+            this.activities = items.map(item => {
+              return {
+                activity_id: item.id,
+                user: {
+                  username: item.actor.name,
+                  full_name: item.actor.name
+                },
+                activity_type: item.event_type,
+                activity_time: item.created_at,
+                activity_content: item.event
+              }
+            })
+            if (callback) callback()
+          }
+        )
+        this.activities = rawActivities
+      })
     }
   }
 })

@@ -1,0 +1,37 @@
+variables:
+  BILLING_TAG: $CI_REGISTRY_IMAGE:billing-$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHA
+  BILLING_LATEST_TAG: $CI_REGISTRY_IMAGE:billing-latest
+  BUILD_TAG: $CI_REGISTRY_IMAGE:builder-$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHA
+  BUILD_LATEST_TAG: $CI_REGISTRY_IMAGE:builder-latest
+stages:
+  - build
+services:
+  - docker:dind
+
+build-billing-job:
+  image: docker:latest
+  only:
+    - dashboard
+    - master
+  stage: build
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - cd billing
+    - docker build -t $BILLING_TAG .
+    - docker tag $BILLING_TAG $BILLING_LATEST_TAG
+    - docker push $BILLING_TAG
+    - docker push $BILLING_LATEST_TAG
+
+build-builder-job:
+  image: docker:latest
+  only:
+    - dashboard
+    - master
+  stage: build
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - cd build
+    - docker build -t $BUILDER_TAG .
+    - docker tag $BUILDER_TAG $BUILDER_LATEST_TAG
+    - docker push $BUILDER_TAG
+    - docker push $BUILDER_LATEST_TAG

@@ -63,7 +63,7 @@ export default {
       statusIcon.value = 'check_circle'
       statusColor.value = 'positive'
       statusText.value = 'Đang hoạt động'
-    } else if (props.app.status === 'down') {
+    } else if (props.app.status === 'stopped') {
       statusIcon.value = 'error'
       statusColor.value = 'negative'
       statusText.value = 'Không hoạt động'

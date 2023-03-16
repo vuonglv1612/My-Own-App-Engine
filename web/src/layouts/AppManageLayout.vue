@@ -69,6 +69,12 @@ export default {
         to: { name: 'project.apps.env' }
       },
       {
+        name: 'project.apps.deploy',
+        label: 'Triển khai',
+        icon: 'o_rocket',
+        to: { name: 'project.apps.deploy' }
+      },
+      {
         name: 'project.apps.settings',
         label: 'Cài đặt',
         icon: 'o_settings',
