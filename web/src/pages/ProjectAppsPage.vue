@@ -7,7 +7,8 @@
         </div>
         <div class="row">
           <div class="col-md-6">
-            <q-input outlined bottom-slots :hide-hint="hideHint" v-model="searchText" ref="searchTextRef" :rules="searchTextRules"
+            <q-input outlined bottom-slots :hide-hint="hideHint" v-model="searchText" ref="searchTextRef"
+                     :rules="searchTextRules"
                      label="Tìm kiếm">
               <template v-slot:after>
                 <q-btn round dense flat icon="search" type="submit" @click="searchApp"/>
@@ -25,7 +26,7 @@
             :to="{ name: 'project.new_app' }"
           />
         </div>
-        <div class="row">
+        <div class="row" v-if="numberOfPages >= 1">
           <q-list
             bordered
             separator
@@ -37,19 +38,12 @@
               :key="app.id"
               :app="app"
             />
-            <q-inner-loading :showing="loading">
-              <div class="row">
-                <q-spinner-ios
-                  color="primary"
-                  size="4em"
-                />
-              </div>
-            </q-inner-loading>
+            <q-inner-loading :showing="loading"></q-inner-loading>
           </q-list>
         </div>
         <div class="row">
           <q-pagination
-            v-if="numberOfPages !== 1"
+            v-if="numberOfPages > 1"
             v-model="currentPage"
             :max="numberOfPages"
             direction-links
@@ -67,7 +61,7 @@
 </template>
 
 <script>
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useAppStore } from 'stores/app-store'
 import AppListItem from 'components/AppListItem.vue'
 import { useProjectStore } from 'stores/project-store'
@@ -87,21 +81,25 @@ export default {
 
     const projectStore = useProjectStore()
     const appStore = useAppStore()
-
-    const { activeProject } = storeToRefs(projectStore)
-    appStore.fetchApps(activeProject.value.id, currentPage.value, searchText.value)
-    loading.value = false
     const numberOfPages = ref(appStore.numberOfPages)
     const apps = ref(appStore.listApps)
 
+    const { activeProject } = storeToRefs(projectStore)
+
+    onMounted(() => {
+      reloadApps()
+    })
+
     const reloadApps = () => {
       loading.value = true
-      appStore.fetchApps(activeProject.value.id, currentPage.value, searchText.value)
-      setTimeout(() => {
+      if (!activeProject.value) {
+        return
+      }
+      appStore.fetchApps(activeProject?.value?.id, currentPage.value, searchText.value, () => {
         numberOfPages.value = appStore.numberOfPages
         apps.value = appStore.listApps
         loading.value = false
-      }, 1000)
+      })
     }
 
     watch(activeProject, () => {

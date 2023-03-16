@@ -5,7 +5,10 @@
         <q-btn dense flat round icon="menu" @click="toggleLeftDrawer"/>
 
         <q-toolbar-title>
-          <span class="q-ml-sm">App Engine</span>
+          <q-avatar>
+            <img src="https://appengine.hn.ss.bfcplatform.vn/logo.png">
+          </q-avatar>
+          <span class="q-ml-sm text-uppercase">Auto Infra</span>
         </q-toolbar-title>
       </q-toolbar>
     </q-header>
@@ -22,6 +25,19 @@
             outlined
             class="fit"
           />
+        </q-item>
+        <q-item
+          clickable
+          v-ripple
+          @click="onCreateProject"
+          active-class="my-menu-link"
+          class="bg-primary text-white"
+        >
+          <q-item-section avatar>
+            <q-icon name="add_circle"/>
+          </q-item-section>
+
+          <q-item-section>Tạo dự án mới</q-item-section>
         </q-item>
         <q-item
           clickable
@@ -82,6 +98,18 @@
 
           <q-item-section>Cài Đặt</q-item-section>
         </q-item>
+        <q-item
+          v-if="isAuthenticated"
+          clickable
+          v-ripple
+          @click="logoutHandler"
+        >
+          <q-item-section avatar>
+            <q-icon name="o_logout"/>
+          </q-item-section>
+
+          <q-item-section>Đăng Xuất</q-item-section>
+        </q-item>
       </q-list>
     </q-drawer>
 
@@ -105,34 +133,42 @@
 </style>
 
 <script>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectStore } from 'stores/project-store'
+import { useAuth0 } from '@auth0/auth0-vue'
+import { useQuasar } from 'quasar'
 
 export default {
   setup () {
+    const $q = useQuasar()
     const projectStore = useProjectStore()
-    projectStore.fetchProjects()
 
+    const auth0 = useAuth0()
     const router = useRouter()
     const route = useRoute()
     const leftDrawerOpen = ref(false)
     const projects = ref(null)
     const project = ref(null)
     const link = ref('project.apps')
+    const { isAuthenticated } = auth0
 
-    projects.value = projectStore.listProjects.map((project) => {
-      return {
-        label: project.display_name,
-        value: project.project_name
-      }
+    onMounted(() => {
+      projectStore.fetchProjects(() => {
+        projects.value = projectStore.listProjects.map((project) => {
+          return {
+            label: project.display_name,
+            value: project.project_name
+          }
+        })
+        const rawProject = projectStore.activeProject
+        project.value = {
+          label: rawProject.display_name,
+          value: rawProject.project_name
+        }
+      })
     })
 
-    const rawProject = projectStore.activeProject
-    project.value = {
-      label: rawProject.display_name,
-      value: rawProject.project_name
-    }
     link.value = route.name
     if (!link.value.startsWith('project.billing') || !link.value.startsWith('project.apps')) {
       leftDrawerOpen.value = true
@@ -146,16 +182,67 @@ export default {
       router.push({ name: link.value })
     }
 
+    const logoutHandler = () => {
+      auth0.logout(
+        {
+          returnTo: window.location.origin
+        }
+      )
+    }
+
+    const onCreateProject = () => {
+      $q.dialog({
+        title: 'Tạo dự án mới',
+        message: 'Bạn có muốn tạo dự án mới không?',
+        prompt: {
+          model: '',
+          type: 'text',
+          label: 'Tên dự án',
+          lazyRules: true,
+          rules: [
+            val => !!val || 'Vui lòng nhập tên dự án',
+            val => (val && val.length <= 50) || 'Tên dự án không được quá 50 ký tự'
+          ]
+        },
+        cancel: true,
+        persistent: true
+      }).onOk((data) => {
+        projectStore.createProject(data, (err, response) => {
+          if (err) {
+            $q.notify({
+              type: 'negative',
+              message: 'Tạo dự án mới thất bại'
+            })
+            return
+          }
+          projects.value = projectStore.listProjects.map((project) => {
+            return {
+              label: project.display_name,
+              value: project.project_name
+            }
+          })
+          const rawProject = projectStore.activeProject
+          project.value = {
+            label: rawProject.display_name,
+            value: rawProject.project_name
+          }
+        })
+      })
+    }
+
     return {
       link,
       project,
       projects,
       leftDrawerOpen,
+      isAuthenticated,
       toggleLeftDrawer () {
         leftDrawerOpen.value = !leftDrawerOpen.value
         link.value = route.name
       },
-      onChangeSelectedProject
+      onChangeSelectedProject,
+      logoutHandler,
+      onCreateProject
     }
   }
 }

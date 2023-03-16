@@ -5,17 +5,17 @@
         <div class="row">
           <h5 class="x-dashboard-page-title">Danh sách thành viên</h5>
         </div>
-        <div class="row">
-          <div class="col-md-6">
-            <q-input outlined bottom-slots v-model="searchText" ref="searchTextRef" :rules="searchTextRules"
-                     label="Tìm kiếm">
-              <template v-slot:after>
-                <q-btn round dense flat icon="search" type="submit" @click="searchApp"/>
-                <q-btn round dense flat icon="restart_alt" type="reset" @click="onReset"/>
-              </template>
-            </q-input>
-          </div>
-        </div>
+        <!--        <div class="row">-->
+        <!--          <div class="col-md-6">-->
+        <!--            <q-input outlined bottom-slots v-model="searchText" ref="searchTextRef" :rules="searchTextRules"-->
+        <!--                     label="Tìm kiếm">-->
+        <!--              <template v-slot:after>-->
+        <!--                <q-btn round dense flat icon="search" type="submit" @click="searchApp"/>-->
+        <!--                <q-btn round dense flat icon="restart_alt" type="reset" @click="onReset"/>-->
+        <!--              </template>-->
+        <!--            </q-input>-->
+        <!--          </div>-->
+        <!--        </div>-->
         <div class="row">
           <q-btn
             color="primary"
@@ -24,7 +24,7 @@
             @click="showAddMemberDialog"
           />
         </div>
-        <q-separator spaced/>
+        <!--        <q-separator spaced/>-->
         <div v-if="loading" class="column justify-center items-center">
           <q-spinner-ios
             color="primary"
@@ -42,7 +42,12 @@
               v-for="member in listMembers"
               :key="member.id"
               :member="member"
+              :active-project="activeProject"
               :currentRole="currentRole"
+              :current-user="currentUser"
+              :on-delete-member="onDeleteMember"
+              :on-change-role="onChangeRole"
+              :on-leave-project="onLeaveProject"
             />
           </q-list>
         </div>
@@ -74,7 +79,7 @@
 
         <q-card-actions align="right" class="text-primary">
           <q-btn flat label="Hủy" v-close-popup/>
-          <q-btn flat label="Gửi yêu cầu" @click="onAddMemberRequest"/>
+          <q-btn color="primary" label="Thêm" @click="onAddMemberRequest"/>
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -82,18 +87,21 @@
 </template>
 
 <script>
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useProjectStore } from 'stores/project-store'
 import { storeToRefs } from 'pinia'
 import MemberListItem from 'components/MemberListItem.vue'
 import { useMemberStore } from 'stores/members-store'
 import { useQuasar } from 'quasar'
-import { useAuthStore } from 'stores/auth-store'
+import { useAuth0 } from '@auth0/auth0-vue'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'ProjectMembersPage',
   components: { MemberListItem },
   setup () {
+    const auth0 = useAuth0()
+    const router = useRouter()
     const searchText = ref(null)
     const currentPage = ref(1)
     const loading = ref(true)
@@ -104,25 +112,25 @@ export default {
 
     const projectStore = useProjectStore()
     const memberStore = useMemberStore()
-    const authStore = useAuthStore()
     const q = useQuasar()
 
-    const { currentUser } = storeToRefs(authStore)
+    const currentUser = ref(auth0.user)
     const { activeProject } = storeToRefs(projectStore)
     const { listMembers, numberOfPages } = storeToRefs(memberStore)
-    memberStore.fetchMembers(activeProject.value.id, currentPage.value, searchText.value)
-    loading.value = false
+
+    onMounted(() => {
+      return reloadMembers()
+    })
 
     const reloadMembers = () => {
       loading.value = true
-      memberStore.fetchMembers(activeProject.value.id, currentPage.value, searchText.value)
-      setTimeout(() => {
+      memberStore.fetchMembers(activeProject.value.id, currentPage.value, searchText.value, () => {
         loading.value = false
-      }, 1000)
+      })
     }
 
     const getCurrentRole = () => {
-      const currentMember = listMembers.value.find(member => member.user_id === currentUser.value.id)
+      const currentMember = listMembers.value.find(member => member.user_id === currentUser.value.sub)
       if (currentMember) {
         return currentMember.role
       }
@@ -156,15 +164,96 @@ export default {
       showAddMember.value = true
     }
     const onAddMemberRequest = () => {
-      q.notify({
-        message: 'Đã gửi yêu cầu thành công',
-        color: 'positive',
-        position: 'top',
-        timeout: 2000
-      })
-      setTimeout(() => {
+      memberStore.addMember(activeProject.value.id, inviteEmail.value, (err, response) => {
+        if (err) {
+          const reason = err?.response.data?.detail?.error || 'Đã có lỗi xảy ra'
+          q.notify({
+            message: reason,
+            color: 'negative',
+            position: 'top',
+            timeout: 2000,
+            icon: 'error'
+          })
+          inviteEmail.value = null
+          showAddMember.value = true
+          return
+        }
+        q.notify({
+          message: 'Mời thành công',
+          color: 'positive',
+          position: 'top',
+          timeout: 2000,
+          icon: 'check_circle'
+        })
         showAddMember.value = false
-      }, 2000)
+        inviteEmail.value = null
+        reloadMembers()
+      })
+    }
+
+    const onDeleteMember = (member) => {
+      memberStore.deleteMember(activeProject.value.id, member.user_id, (err, response) => {
+        if (err) {
+          q.notify({
+            message: 'Có lỗi xảy ra',
+            type: 'negative',
+            icon: 'error',
+            position: 'top'
+          })
+        } else {
+          q.notify({
+            message: 'Xóa thành viên thành công',
+            type: 'positive',
+            icon: 'check_circle',
+            position: 'top'
+          })
+        }
+        reloadMembers()
+      })
+    }
+
+    const onChangeRole = (member, role) => {
+      memberStore.updateMember(activeProject.value.id, member.user_id, role, (err, response) => {
+        if (err) {
+          q.notify({
+            message: 'Có lỗi xảy ra',
+            type: 'negative',
+            icon: 'error',
+            position: 'top'
+          })
+        } else {
+          q.notify({
+            message: 'Thay đổi vai trò thành công',
+            type: 'positive',
+            icon: 'check_circle',
+            position: 'top'
+          })
+        }
+        reloadMembers()
+      })
+    }
+
+    const onLeaveProject = () => {
+      memberStore.leaveProject(activeProject.value.id, (err, response) => {
+        if (err) {
+          q.notify({
+            message: 'Có lỗi xảy ra',
+            type: 'negative',
+            icon: 'error',
+            position: 'top'
+          })
+        } else {
+          q.notify({
+            message: 'Rời khỏi dự án thành công',
+            type: 'positive',
+            icon: 'check_circle',
+            position: 'top'
+          })
+        }
+        projectStore.fetchProjects(() => {
+          router.push({ name: 'project' })
+        })
+      })
     }
 
     return {
@@ -182,7 +271,12 @@ export default {
       showAddMember,
       inviteEmail,
       onAddMemberRequest,
-      currentRole
+      currentRole,
+      currentUser,
+      activeProject,
+      onDeleteMember,
+      onChangeRole,
+      onLeaveProject
     }
   }
 }

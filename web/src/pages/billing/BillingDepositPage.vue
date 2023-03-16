@@ -27,7 +27,8 @@
                 <q-input outlined type="number" suffix="VNĐ" v-model="customDeposit" class="q-pl-sm">
                   <template v-slot:append>
                     <div class="row">
-                      <q-btn class="bg-primary text-white" flat label="Nạp tiền" @click="requestTopUp(Number(customDeposit))" />
+                      <q-btn class="bg-primary text-white" flat label="Nạp tiền"
+                             @click="requestTopUp(Number(customDeposit))"/>
                     </div>
                   </template>
                 </q-input>
@@ -179,6 +180,7 @@ export default {
         persistent: true
       })
     }
+
     const customDeposit = ref(0)
     return {
       rows,

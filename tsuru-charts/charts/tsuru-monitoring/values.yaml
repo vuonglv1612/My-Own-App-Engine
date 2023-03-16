@@ -1,0 +1,28 @@
+# Default values for tsuru-monitoring.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+tsuruRules:
+  labels: {}
+  annotations: {}
+
+rpaas:
+  enabled: true
+  namespaceSelector: {}
+  selector: {}
+
+remoteRead:
+  enabled: false
+  readers: []
+  # - apiGroup: rbac.authorization.k8s.io
+  #   kind: User
+  #   name: my-user
+
+nodeLocalDNS:
+  enabled: false
+  # podMonitorLabels: {}
+
+calicoNode:
+  enabled: false
+  # podMonitorLabels: {}
+  port: "9099"

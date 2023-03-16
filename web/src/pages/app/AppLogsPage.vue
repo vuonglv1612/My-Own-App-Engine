@@ -10,17 +10,12 @@
             <q-separator/>
             <q-card-section class="q-pa-none">
               <div class="row">
-                <div class="col-xs-12 window-height bg-black text-green-5 q-pa-sm log-box">
-                  <q-scroll-area
-                    ref="scroll"
+                <div class="col-xs-12 window-height text-green-5 q-pa-sm log-box">
+                  <iframe
                     class="fit"
-                  >
-                  <div v-for="log in logs" :key="log.id">
-                    <p class="log-record q-mb-none">
-                      {{log.message}}
-                    </p>
-                  </div>
-                  </q-scroll-area>
+                    :src="src"
+                    frameborder="0"
+                  />
                 </div>
               </div>
             </q-card-section>
@@ -31,40 +26,18 @@
   </q-page>
 </template>
 
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
-
-.log-record {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 12px;
-  word-break: break-all;
-}
-
-</style>
-
 <script>
-import { useLogStore } from 'stores/log-store'
-import { onMounted, ref } from 'vue'
-
-const logStore = useLogStore()
+import { ref } from 'vue'
+import { useRoute } from 'vue-router'
 
 export default {
   name: 'AppLogsPage',
   setup () {
-    const scroll = ref(null)
-    const logs = ref([])
-    setInterval(() => {
-      logStore.fetchLogs()
-      logs.value = logStore.logs
-      const scrollTarget = scroll.value?.getScrollTarget()
-      const duration = 0
-      scroll.value?.setScrollPosition('vertical', scrollTarget.scrollHeight, duration)
-    }, 1000)
-    onMounted(() => {
-      logStore.fetchLogs()
-      logs.value = logStore.logs
-    })
-    return { logs, scroll }
+    const route = useRoute()
+    const appId = ref(route.params.appId)
+    appId.value = route.params.appId
+    const src = ref('https://grafana.autoinfra.tech/d/JVfuy7A4z/app-log?orgId=1&var-appname=' + appId.value + '&refresh=10s&from=now-1h&to=now&kiosk=embedded&theme=light')
+    return { src }
   }
 }
 </script>

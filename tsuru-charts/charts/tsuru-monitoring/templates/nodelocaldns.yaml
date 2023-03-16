@@ -1,0 +1,22 @@
+{{- if .Values.nodeLocalDNS.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: node-local-dns
+  labels:
+{{ include "tsuru-monitoring.labels" . | indent 4 }}
+{{- with .Values.nodeLocalDNS.podMonitorLabels }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+
+spec:
+  selector:
+    matchLabels:
+      k8s-app: node-local-dns
+  namespaceSelector:
+    matchNames:
+    - kube-system
+  podMetricsEndpoints:
+    - port: metrics
+      scheme: http
+{{- end }}

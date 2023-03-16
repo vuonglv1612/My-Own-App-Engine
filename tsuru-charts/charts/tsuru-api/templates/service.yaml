@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tsuru-api.fullname" . }}
+  labels:
+    {{- include "tsuru-api.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
+  ports:
+  {{- if eq .Values.service.type "ClusterIP" }}
+    - port: {{ .Values.service.httpPort }}
+      targetPort: {{ .Values.service.targetHTTPPort }}
+      protocol: TCP
+      name: http
+  {{- else }}
+  {{- if .Values.service.httpsOnly }}
+  - port: {{ .Values.service.httpsPort }}
+    targetPort: {{ .Values.service.targetHTTPSPort }}
+    name: "https"
+  {{- else  }}
+  - port: {{ .Values.service.httpsPort }}
+    targetPort: {{ .Values.service.targetHTTPSPort }}
+    name: "https"
+  - port: {{ .Values.service.httpPort }}
+    targetPort: {{ .Values.service.targetHTTPPort }}
+    name: "http"
+  {{- end }}
+  {{- end }}
+  selector:
+    {{- include "tsuru-api.selectorLabels" . | nindent 4 }}

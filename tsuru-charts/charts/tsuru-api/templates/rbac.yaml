@@ -1,0 +1,138 @@
+{{- if .Values.serviceAccount.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ template "tsuru-api.fullname" . }}
+  labels:
+    {{- include "tsuru-api.labels" . | nindent 4 }}
+rules:
+
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/attach
+  - pods/exec
+  - pods/log
+  - pods/eviction
+  - services
+  - endpoints
+  - serviceaccounts
+  - namespaces
+  - nodes
+  - persistentvolumes
+  - persistentvolumeclaims
+  verbs:
+  - "*"
+
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - update
+
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - get
+  - list
+  - watch
+
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  verbs:
+  - "*"
+
+- apiGroups:
+  - "metrics.k8s.io"
+  resources:
+  - pods
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  verbs:
+  - "*"
+  
+- apiGroups:
+  - extensions
+  resources:
+  - deployments
+  - deployments/rollback
+  verbs:
+  - "*"
+
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - deployments/rollback
+  - daemonsets
+  - replicasets
+  verbs:
+  - "*"
+
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - create
+  - get
+
+- apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - "*"
+
+- apiGroups:
+  - autoscaling.k8s.io
+  resources:
+  - verticalpodautoscalers
+  verbs:
+  - "*"
+
+- apiGroups:
+  - cloud.google.com
+  resources:
+  - backendconfigs
+  verbs:
+  - "*"
+
+- apiGroups:
+  - tsuru.io
+  resources:
+  - "*"
+  verbs:
+  - "*"
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ template "tsuru-api.fullname" . }}
+  labels:
+    {{- include "tsuru-api.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ template "tsuru-api.fullname" . }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "tsuru-api.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+{{- end -}}

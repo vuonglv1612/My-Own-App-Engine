@@ -1,0 +1,47 @@
+slos:
+  - name: tsuru.rpaas-v2.discovery-services
+    honorLabels: true # use labels returned by the query
+    labels:
+      platform: tsuru.rpaasv2
+    trafficRateRecord:
+      expr: |
+        sum(label_replace(label_join(sum by (namespace, service_instance) (
+                                     rate(nginx_vts_server_requests_total{code="total",host="*",service_instance!=""}[$window])),
+                                     "service", ".", "namespace", "service_instance"),
+                          "service", "tsuru.$1", "service",  "(.*)")) by (service, namespace)
+
+    errorRateRecord:
+      expr: |
+        sum(label_replace(label_join(sum by (namespace, service_instance) (
+                                         rate(nginx_vts_server_requests_total{code="5xx",host="*",service_instance!=""}[$window])) /
+                                     sum by (namespace, service_instance) (
+                                         rate(nginx_vts_server_requests_total{code="total",host="*",service_instance!=""}[$window])),
+                                     "service", ".", "namespace", "service_instance"),
+                          "service", "tsuru.$1", "service",  "(.*)")) by (service, namespace) >= 0
+
+    latencyQuantileRecord:
+      expr: |
+        sum(label_replace(label_join(histogram_quantile($quantile,
+                                                        sum by (namespace, service_instance, le) (
+                                                            sum_over_time(rpaas:nginx_vts_server_request_duration_seconds_bucket:increase_1m[$window])) >= 0),
+                                     "service", ".", "namespace", "service_instance"),
+                          "service", "tsuru.$1", "service",  "(.*)")) by (service, namespace) >= 0
+
+    latencyRecord:
+      buckets:
+        # list of important latency
+        # reference: https://landing.google.com/sre/workbook/chapters/alerting-on-slos/#alerting_at_scale
+        - '0.050'
+        - '0.100'
+        - '0.200'
+        - '0.500'
+        - '1.000'
+        - '5.000'
+
+      expr: |
+        sum(label_replace(label_join(sum by (namespace, service_instance) (
+                                         sum_over_time(rpaas:nginx_vts_server_request_duration_seconds_bucket:increase_1m{le="$le"}[$window])) /
+                                     sum by (namespace, service_instance) (
+                                         sum_over_time(rpaas:nginx_vts_server_request_duration_seconds_bucket:increase_1m{le="+Inf"}[$window])),
+                                     "service", ".", "namespace", "service_instance"),
+                          "service", "tsuru.$1", "service",  "(.*)")) by (service, namespace) >= 0

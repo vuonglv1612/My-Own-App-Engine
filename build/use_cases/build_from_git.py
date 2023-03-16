@@ -1,4 +1,4 @@
-from functions import build, clone, delete_folder
+from functions import build, clone
 
 
 def build_from_git(url, branch, folder, image_name, image_tag, builder, buildpack=None):
@@ -6,6 +6,3 @@ def build_from_git(url, branch, folder, image_name, image_tag, builder, buildpac
     logs = build(folder, image_name, image_tag, builder, buildpack=buildpack)
     for log in logs:
         yield log
-
-    # delete folder after build
-    delete_folder(folder)

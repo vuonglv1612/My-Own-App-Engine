@@ -69,7 +69,7 @@
                             />
                           </template>
                           <template v-slot:after>
-                            <q-btn class="fit" label="Thêm" color="positive" @click="onSaveEnv(newEnv)"/>
+                            <q-btn class="fit" label="Thêm" color="positive" @click="onAddEnv"/>
                           </template>
                         </q-input>
                       </div>
@@ -78,6 +78,7 @@
                 </q-item>
               </q-list>
             </q-card-section>
+            <q-inner-loading :showing="loading"/>
           </q-card>
         </div>
       </div>
@@ -88,44 +89,132 @@
 <script>
 import { onMounted, ref } from 'vue'
 import { useEnvStore } from 'stores/env-store'
+import { useRoute } from 'vue-router'
+import { useQuasar } from 'quasar'
 
 const envStore = useEnvStore()
 
 export default {
   name: 'AppEnvPage',
   setup () {
+    const $q = useQuasar()
     const envs = ref([])
     const newEnv = ref({ name: null, value: null, show: false })
+    const route = useRoute()
+    const appId = ref(route.params.appId)
+    const loading = ref(false)
+
+    const fetchEnvs = () => {
+      loading.value = true
+      envStore.fetchEnvs(appId.value, () => {
+        newEnv.value = { name: null, value: null, show: false }
+        envs.value = envStore.envs
+        envs.value = envs.value.map(env => {
+          return {
+            id: env.id,
+            name: env.name,
+            value: env.value,
+            show: false
+          }
+        })
+        loading.value = false
+      })
+    }
 
     onMounted(() => {
-      envStore.fetchEnvs()
-      envs.value = envStore.envs
-      envs.value = envs.value.map(env => {
-        return {
-          id: env.id,
-          name: env.name,
-          value: env.value,
-          show: false
-        }
-      })
+      fetchEnvs()
     })
 
     const onSaveEnv = (env) => {
-      // envStore.updateEnv(env.id, env.value)
-      alert('Lưu thành công ' + env.name)
+      loading.value = true
+      envStore.updateEnv(appId.value, env.id, env, (err, response) => {
+        if (err) {
+          const reason = err.response.data.detail?.error
+          $q.notify({
+            message: reason || 'Cập nhật biến môi trường thất bại',
+            color: 'negative',
+            position: 'top',
+            timeout: 2000
+          })
+        } else {
+          fetchEnvs()
+          $q.notify({
+            message: 'Cập nhật biến môi trường thành công',
+            color: 'positive',
+            position: 'top',
+            timeout: 2000
+          })
+        }
+        loading.value = false
+      })
+    }
+
+    const onAddEnv = () => {
+      if (!newEnv.value.name || !newEnv.value.value) {
+        $q.notify({
+          message: 'Vui lòng nhập dữ liệu',
+          color: 'negative',
+          position: 'top',
+          timeout: 2000
+        })
+        return
+      }
+      loading.value = true
+      envStore.addEnv(appId.value, newEnv.value, (err, response) => {
+        if (err) {
+          const reason = err.response.data.detail?.error
+          const msg = reason || 'Thêm biến môi trường thất bại'
+          $q.notify({
+            message: msg,
+            color: 'negative',
+            position: 'top',
+            timeout: 2000
+          })
+        } else {
+          fetchEnvs()
+          $q.notify({
+            message: 'Cập nhật biến môi trường thành công',
+            color: 'positive',
+            position: 'top',
+            timeout: 2000
+          })
+        }
+        loading.value = false
+      })
     }
 
     const onDeleteEnv = (env) => {
-      // envStore.deleteEnv(env.id)
-      alert('Xóa thành công ' + env.name)
+      loading.value = true
+      envStore.deleteEnv(appId.value, env.id, (err, response) => {
+        if (err) {
+          const reason = err.response.data.detail?.error
+          $q.notify({
+            message: reason || 'Xóa biến môi trường thất bại',
+            color: 'negative',
+            position: 'top',
+            timeout: 2000
+          })
+        } else {
+          fetchEnvs()
+          $q.notify({
+            message: 'Xóa biến môi trường thành công',
+            color: 'positive',
+            position: 'top',
+            timeout: 2000
+          })
+        }
+        loading.value = false
+      })
     }
 
     return {
       envs,
       newEnv,
+      loading,
 
       onSaveEnv,
-      onDeleteEnv
+      onDeleteEnv,
+      onAddEnv
     }
   }
 }

@@ -1,0 +1,12 @@
+nameOverride: ""
+namespaceOverride: ""
+labels: []
+annotations: []
+
+backendConfig:
+  enabled: false
+  spec: {}
+
+frontendConfig:
+  enabled: false
+  spec: {}

@@ -31,11 +31,18 @@
 <script>
 
 import { useQuasar } from 'quasar'
+import { useRoute, useRouter } from 'vue-router'
+import { ref } from 'vue'
+import { useAppStore } from 'stores/app-store'
 
 export default {
-  name: 'PageName',
+  name: 'AppSettingPage',
   setup () {
     const $q = useQuasar()
+    const route = useRoute()
+    const router = useRouter()
+    const appStore = useAppStore()
+    const appId = ref(route.params.appId)
     const onDeleteApp = () => {
       $q.dialog({
         title: 'Xóa ứng dụng',
@@ -43,8 +50,30 @@ export default {
         cancel: true,
         persistent: true
       }).onOk(() => {
-        // TODO: delete app
-        alert('delete app')
+        appStore.deleteApp(appId.value, (err, data) => {
+          if (err) {
+            if (err.response.statusCode === 404) {
+              // redirect to 404 page
+              $q.notify({
+                type: 'negative',
+                message: 'Xóa ứng dụng thất bại. Lý do: Ứng dụng không tồn tại'
+              })
+              router.push({ name: 'index' })
+            } else {
+              $q.notify({
+                type: 'negative',
+                message: 'Xóa ứng dụng thất bại. Lý do: ' + err.response.data.detail.error || 'Không xác định'
+              })
+            }
+          } else {
+            $q.notify({
+              type: 'positive',
+              message: 'Xóa ứng dụng thành công',
+              timeout: 1000
+            })
+            router.push({ name: 'project.apps' })
+          }
+        })
       })
     }
     return {

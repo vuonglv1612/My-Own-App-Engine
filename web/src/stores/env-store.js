@@ -1,20 +1,84 @@
 import { defineStore } from 'pinia'
+import { api } from 'boot/axios'
+import { auth0 } from 'app/auth0'
 
 export const useEnvStore = defineStore('envs', {
   state: () => ({
     envs: []
   }),
 
-  getters: {
-  },
+  getters: {},
 
   actions: {
-    fetchEnvs () {
-      const newEnvs = [{ id: 1, name: 'ENV_1', value: '111111', description: 'Development environment' },
-        { id: 2, name: 'ENV_2', value: '222222', description: 'Development environment' },
-        { id: 3, name: 'ENV_3', value: '333333', description: 'Development environment' }
-      ]
-      this.envs = newEnvs
+    fetchEnvs (appId, callback) {
+      auth0.getAccessTokenSilently().then((token) => {
+        this.envs = []
+        const headers = {
+          Authorization: 'Bearer ' + token
+        }
+        api.get('/apps/' + appId + '/envs', {
+          headers
+        }).then(
+          (response) => {
+            this.envs = response.data.items.map((env) => {
+              return {
+                id: env.id,
+                name: env.name,
+                value: env.value
+              }
+            })
+            callback()
+          }
+        )
+      })
+    },
+    addEnv (appId, env, callback) {
+      auth0.getAccessTokenSilently().then((token) => {
+        const headers = {
+          Authorization: 'Bearer ' + token
+        }
+        const params = {
+          name: env.name,
+          value: env.value
+        }
+        api.post('/apps/' + appId + '/envs', params, { headers }).then(
+          (response) => {
+            callback(null, response)
+          }).catch((error) => {
+          callback(error, null)
+        })
+      })
+    },
+    updateEnv (appId, envId, env, callback) {
+      auth0.getAccessTokenSilently().then((token) => {
+        const headers = {
+          Authorization: 'Bearer ' + token
+        }
+        const params = {
+          name: env.name,
+          value: env.value
+        }
+        api.put('/apps/' + appId + '/envs/' + envId, params, { headers }).then(
+          (response) => {
+            callback(null, response)
+          }).catch((error) => {
+          callback(error, null)
+        })
+      })
+    },
+    deleteEnv (appId, envId, callback) {
+      auth0.getAccessTokenSilently().then((token) => {
+        const headers = {
+          Authorization: 'Bearer ' + token
+        }
+        api.delete('/apps/' + appId + '/envs/' + envId, { headers }).then(
+          (response) => {
+            callback(null, response)
+          }).catch((error) => {
+          callback(error, null)
+        })
+      })
     }
+
   }
 })
